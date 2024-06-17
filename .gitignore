@@ -2,6 +2,7 @@
 *.nc
 *.h5
 *.jld2
+*.jld
 *.log
 *.pdf
 *.gif
