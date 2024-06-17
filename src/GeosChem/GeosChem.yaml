@@ -1,0 +1,32 @@
+files:
+  - path: "/home/cfranken/data/GeosChem/Benchmark/GEOSChem.SpeciesConc.20190101_0000z.nc4"
+    variables: 
+      hyam: hyam
+      hybm: hybm
+      hyai: hyai
+      hybi: hybi
+      lat: lat
+      lon: lon
+      time: time
+      SpeciesConc_CH4: ch4
+      SpeciesConc_CO: co
+      SpeciesConc_CO2: co2
+      SpeciesConc_H2O: h2o
+      SpeciesConc_C2H6: c2h6
+      SpeciesConc_N2O: n2o
+  - path: "/home/cfranken/data/GeosChem/Benchmark/GEOSChem.StateMet.20190101_0000z.nc4"
+    variables:
+      Met_PBLH: pbl
+      Met_T: tair
+      Met_TropHt: tropopause_height
+      Met_TropLev: tropopause_level
+      Met_PS1WET: psurf_start
+      Met_PS2WET: psurf_end
+  - path: "/home/cfranken/data/GeosChem/Benchmark/GEOSChem.Aerosols.20190101_0000z.nc4"
+    variables:
+      AODDust: aod_dust
+      AODHyg550nm_BCPI: aod_bcpi
+      AODHyg550nm_OCPI: aod_ocpi
+      AODHyg550nm_SALA: aod_sala
+      AODHyg550nm_SALC: aod_salc
+      AODHyg550nm_SO4: aod_so4
