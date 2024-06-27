@@ -356,7 +356,7 @@ weakdeps = ["Dates", "LinearAlgebra"]
 [[CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
-version = "1.1.0+0"
+version = "1.1.1+0"
 
 [[ComputationalResources]]
 git-tree-sha1 = "52cb3ec90e8a8bea0e62e275ba577ad0f74821f7"
@@ -2914,7 +2914,7 @@ version = "1.1.10+0"
 deps = ["CUDA", "CanopyOptics", "DataInterpolations", "DelimitedFiles", "DiffResults", "Distributions", "DocStringExtensions", "FastGaussQuadrature", "ForwardDiff", "InstrumentOperator", "Interpolations", "JLD2", "JSON", "KernelAbstractions", "LinearAlgebra", "LogExpFunctions", "NCDatasets", "NNlib", "NaNMath", "NetCDF", "OffsetArrays", "OrderedCollections", "Parameters", "Pkg", "Polynomials", "ProgressMeter", "QuadGK", "SpecialFunctions", "StaticArrays", "StatsBase", "TimerOutputs", "UnPack", "UnicodePlots", "Unitful", "UnitfulEquivalences", "WignerSymbols", "YAML"]
 path = "/home/cfranken/code/gitHub/vSmartMOM.jl/"
 uuid = "7ba11eeb-0a61-4a04-a413-bf612cc2007e"
-version = "1.0.3"
+version = "1.0.5"
 
 [[x264_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]

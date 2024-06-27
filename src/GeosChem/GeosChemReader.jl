@@ -136,12 +136,12 @@ Returns:
 
 This function computes the following:
 1. `levi = ai / 1000 + bi`
-2. `dp = abs.(diff(levi))`
+2. `dp = abs.(diff(levi))` (ignore the need to convert to dry pressure so far))
 3. Normalize `dp` by dividing by the sum of its elements (note, we currently use the "wet" dp)
 """
 function computeColumnAveragingOperator(geos::GeosData) 
-    ai = geos.data["hyai"][:];
-    bi = geos.data["hybi"][:];
+    ai = geos.data["ai"][:];
+    bi = geos.data["bi"][:];
     levi = ai / 1000 .+ bi
     dp = abs.(diff(levi))
     dp /= sum(dp)

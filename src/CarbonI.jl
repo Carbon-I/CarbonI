@@ -18,5 +18,7 @@ using ForwardDiff, DiffResults
 
 include("tools.jl")
 include("forwardModel.jl")
+include("GeosChem/GeosChemReader.jl")
+include("GeosChem/tools.jl")
 
 end # module CarbonI
