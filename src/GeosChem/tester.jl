@@ -1,6 +1,6 @@
 using CarbonI, Plots
 
-geos = CarbonI.loadGeos("src/GeosChem/GeosChem.yaml")
+geos, aero = CarbonI.loadGeos("src/GeosChem/GeosChem.yaml")
 aod_salc = geos.data["aod_salc"];
 aod_sala = geos.data["aod_sala"];
 aod_ocpi = geos.data["aod_ocpi"];
@@ -20,10 +20,10 @@ dp = CarbonI.computeColumnAveragingOperator(geos)
 c2h6 = geos.data["c2h6"];
 xc2h6 = CarbonI.getColumnAverage(c2h6, dp)
 
-using CarbonI, Plots
+#using CarbonI, Plots
 
-lat = 27.2
-lon = 82.5
+lat = -3.5 # 27.2
+lon = -63.0 # 82.5
 
 iLat = argmin(abs.(geos.data["lat"] .- lat))
 iLon = argmin(abs.(geos.data["lon"] .- lon))
@@ -39,4 +39,4 @@ p_full, p_half, vmr_h2o, vcd_dry, vcd_h2o, new_vmr2, Δz = CarbonI.compute_atmos
 plot(aod["aod_so4"], p_full, yflip=true, label="Sulfate Aerosols")
 plot!(aod["aod_ocpi"], p_full, yflip=true, label="Organic Carbon Aerosols")
 plot!(aod["aod_strat"], p_full, yflip=true, label="Stratospheric Aerosols")
-plot!(aod["aod_dust"], p_full, yflip=true, label="Dust Aerosols")
+plot!(aod["aod_dust"], p_full, yflip=true, label="Dust Aerosols",legend=:topright)

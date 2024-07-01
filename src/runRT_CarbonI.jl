@@ -1,5 +1,5 @@
-using vSmartMOM, InstrumentOperator, CarbonI, ImageFiltering, Interpolations, Statistics
-
+using vSmartMOM, InstrumentOperator, CarbonI, ImageFiltering, Interpolations, Statistics, CUDA
+# device!(1)
 Δwl = 0.005
 wl = 2035:Δwl:2385
 FWHM  = 1.0  # 
@@ -13,15 +13,16 @@ lociBox = CarbonI.KernelInstrument(kernf, wl_loci);
 wl_emit = collect(2040:7.5:2380)
 emitBox = CarbonI.KernelInstrument(CarbonI.box_kernel(8.5, Δwl), wl_emit);
 
-parameters = parameters_from_yaml("src/yaml/carbon-i.yaml")
+parameters = parameters_from_yaml("/home/cfranken/code/gitHub/CarbonI/src/yaml/carbon-i.yaml")
 model = model_from_parameters(parameters);
 a = rt_run(model)
 
 aod_band = sum(model.τ_aer[1]); # Total AOD
 
 ν = parameters.spec_bands[1];
-Δν = mean(diff(ν));
-grid = ν[1]:Δν:ν[end]+10eps()
+#Δν = mean(diff(ν));
+#grid = ν[1]:Δν:ν[end]+10eps()
+grid = LinRange(ν[1], ν[end], length(ν))
 
 # Get reflected radiance:
 R = a[1][1,1,:];

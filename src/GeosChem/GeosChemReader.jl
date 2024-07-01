@@ -53,7 +53,7 @@ function loadGeos(config_path::String)
         close(ds)
     end
 
-    return GeosData(all_data)
+    return GeosData(all_data), config["aerosols"]
 end
 
 """

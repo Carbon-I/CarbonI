@@ -158,6 +158,41 @@ function read_atmos_profile_MERRA2(file::String, lat::Real, lon::Real, timeIndex
     return AtmosphericProfile(lat, lon, psurf, T, q, p_full, p_half, vmr_h2o, vcd_dry, vcd_h2o)
 end;
 
+"Read atmospheric profile (just works for our file, can be generalized"
+function generate_atmos_profile(T,p,q; g₀=9.8196)
+    FT = eltype(T)
+    @assert length(p) ==  length(T)+1 == length(q)+1
+    
+    # Surafce pressure
+    psurf = p[end]
+    p_half = p 
+    p_full = (p_half[2:end] + p_half[1:end - 1]) / 2
+    
+    # Avogradro's number:
+    Na = FT(6.0221415e23);
+    # Dry and wet mass
+    dryMass = FT(28.9647e-3)  / Na  # in kg/molec, weighted average for N2 and O2
+    wetMass = FT(18.01528e-3) / Na  # just H2O
+    ratio = dryMass / wetMass 
+    n_layers = length(T)
+    # also get a VMR vector of H2O (volumetric!)
+    vmr_h2o = zeros(FT, n_layers, )
+    vcd_dry = zeros(FT, n_layers, )
+    vcd_h2o = zeros(FT, n_layers, )
+
+    # Now actually compute the layer VCDs
+    for i = 1:n_layers 
+        Δp = p_half[i + 1] - p_half[i]
+        vmr_h2o[i] = q[i] * ratio
+        vmr_dry = 1 - vmr_h2o[i]
+        M  = vmr_dry * dryMass + vmr_h2o[i] * wetMass
+        vcd_dry[i] = vmr_dry * Δp / (M * g₀ * 100.0^2)   # includes m2->cm2
+        vcd_h2o[i] = vmr_h2o[i] * Δp / (M * g₀ * 100^2)
+    end
+
+    return AtmosphericProfile(FT(0.0), FT(0.0), psurf, T, q, p_full, p_half, vmr_h2o, vcd_dry, vcd_h2o)
+end;
+
 "Computes cross section matrix for arbitrary number of absorbers"
 function compute_profile_crossSections(profile::AtmosphericProfile, hitranModels, ν::AbstractRange{<:Real})
     nGases   = length(hitranModels)
@@ -215,7 +250,8 @@ function reduce_profile(n::Int, profile::AtmosphericProfile, σ_matrix)
     @assert n < length(profile.T)
     @unpack lat, lon, psurf = profile
     # New rough half levels (boundary points)
-    a = range(0, maximum(profile.p_levels), length=n + 1)
+    #a = range(0, maximum(profile.p_levels), length=n + 1)
+    a = reduce_pressure_levels(profile.p_levels, n+1)
     dims = size(σ_matrix)
     FT = eltype(σ_matrix)
     σ_matrix_lr = zeros(FT, dims[1], n, dims[3])
@@ -243,7 +279,40 @@ function reduce_profile(n::Int, profile::AtmosphericProfile, σ_matrix)
     return AtmosphericProfile(lat, lon, psurf, T, q, p_full, p_levels, vmr_h2o, vcd_dry, vcd_h2o), σ_matrix_lr
 end;
 
+function reduce_pressure_levels(pressures, n::Int)
+    # Ensure the input pressures are sorted
+    sorted_pressures = sort(pressures)
+    # Number of pressure levels in the input array
+    m = length(sorted_pressures)
 
+    # Check if the desired number of levels is greater than the available levels
+    if n > m
+        error("Desired number of levels (n) is greater than the available levels in the input array")
+    end
+
+    # Create a range of equally spaced values between the minimum and maximum pressures
+    p_min = minimum(sorted_pressures)
+    p_max = maximum(sorted_pressures)
+    target_pressures = range(p_min, stop=p_max, length=n)
+
+    # Find the closest pressure levels in the sorted array to the target pressures
+    new_pressures = Array{Float64,1}(undef, n)
+    for i in 1:n
+        closest_index = argmin(abs.(sorted_pressures .- target_pressures[i]))
+        new_pressures[i] = sorted_pressures[closest_index]
+    end
+
+    # Remove duplicates in case multiple target pressures are closest to the same pressure level
+    new_pressures = unique(new_pressures)
+
+    # If we have fewer levels than desired due to duplicates, refill the remaining levels
+    while length(new_pressures) < n
+        remaining_pressures = setdiff(sorted_pressures, new_pressures)
+        new_pressures = vcat(new_pressures, remaining_pressures[1])
+    end
+
+    return sort(new_pressures)
+end
 
 
 
