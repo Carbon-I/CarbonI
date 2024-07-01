@@ -2912,7 +2912,7 @@ version = "1.1.10+0"
 
 [[vSmartMOM]]
 deps = ["CUDA", "CanopyOptics", "DataInterpolations", "DelimitedFiles", "DiffResults", "Distributions", "DocStringExtensions", "FastGaussQuadrature", "ForwardDiff", "InstrumentOperator", "Interpolations", "JLD2", "JSON", "KernelAbstractions", "LinearAlgebra", "LogExpFunctions", "NCDatasets", "NNlib", "NaNMath", "NetCDF", "OffsetArrays", "OrderedCollections", "Parameters", "Pkg", "Polynomials", "ProgressMeter", "QuadGK", "SpecialFunctions", "StaticArrays", "StatsBase", "TimerOutputs", "UnPack", "UnicodePlots", "Unitful", "UnitfulEquivalences", "WignerSymbols", "YAML"]
-path = "/home/cfranken/code/gitHub/vSmartMOM.jl/"
+path = "../vSmartMOM.jl"
 uuid = "7ba11eeb-0a61-4a04-a413-bf612cc2007e"
 version = "1.0.5"
 

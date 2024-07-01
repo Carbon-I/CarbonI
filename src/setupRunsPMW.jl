@@ -12,8 +12,8 @@ include("src/forwardModel.jl")
 
 # Load some profile:
 #MD = "/net/fluo/data1/ftp/XYZT_ESE156/Data/MERRA300.prod.assim.inst6_3d_ana_Nv.20150613.hdf.nc4"
-MD = "/home/cfranken/for-christian/MERRA2_400.tavg3_3d_asm_Nv.20170601.nc4"
-MD = "/home/cfranken/for-christian-20200610/MERRA2_400.tavg3_3d_asm_Nv.20200610.nc4"
+MD = "./MERRA2_300.tavg3_3d_asm_Nv.20100610.nc4"
+MD = "./MERRA2_400.tavg3_3d_asm_Np.20200610.nc4"
 hitran_array = (co2, h2o, ch4, co, n2o, hdo, co2_iso2, c2h6);
 
 
