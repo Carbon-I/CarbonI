@@ -47,15 +47,15 @@ function forward_model_sat_x(𝐱::AbstractArray{FT} ;sun = solarIrr, instrument
          #@show i, maximum(∑τ), maximum(σ_matrix[:,:,i])
     end
     # Transmission without Tsolar
-    @time  T = sun .* reverse(exp.(-AMF * ∑τ))
+    T = sun .* reverse(exp.(-AMF * ∑τ))
 	#@show ∑τ
     #@time  T_conv = CarbonI.conv_spectra(instrument, wl, T)
     
-    @time T_conv = cM * T
+    T_conv = cM * T
     L = T_conv;
     # x-axis for polynomial [-1,1], enables legendre later:
     x_poly = CarbonI.rescale_x(instrument.ν_out)
-   @time return L .* poly.(x_poly) 
+   return L .* poly.(x_poly) 
 end
 
 function forward_model_x_(𝐱::AbstractArray{FT} ;sun = solarIrr,reflectance=refl, instrument=lociBox, sza=sza, vza=0.0, profile=profile,σ_matrix=σ_matrix, wl=wl) where {FT}

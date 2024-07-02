@@ -1,5 +1,5 @@
 
-using CarbonI
+using CarbonI, vSmartMOM
 using ImageFiltering, DiffResults, ForwardDiff, InstrumentOperator, Unitful, Interpolations
 using NCDatasets, Polynomials, LinearAlgebra, SpecialPolynomials
 using CairoMakie
@@ -44,7 +44,7 @@ kern2 = CarbonI.gaussian_kernel(FWHM, Δwl)
 kernf = imfilter(kern1, kern2)
 lociBox = CarbonI.KernelInstrument(kernf, collect(2040:SSI:2380));
 # Generate convolution matrix:
-cM = CarbonI.generate_conv_matrix(m,wl, Δwl)
+cM = CarbonI.generate_conv_matrix(lociBox,wl, Δwl)
 ####
 
 # Number of layers:
@@ -150,6 +150,7 @@ x = [vmr_co2; vmr_h2o; vmr_ch4; vmr_co; vmr_n2o; 0.1*vmr_hdo;0.1*vmr_co2;0.1*vmr
 x_all[:,1]=x
 
 A = zeros(n_state,n_state)
+result = DiffResults.JacobianResult(zeros(length(lociBox.ν_out)),x);
 
 for i=1:max_no_of_iter
     @show i
