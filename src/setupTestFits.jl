@@ -43,6 +43,8 @@ kern1 = CarbonI.box_kernel(2*SSI, Δwl)
 kern2 = CarbonI.gaussian_kernel(FWHM, Δwl)
 kernf = imfilter(kern1, kern2)
 lociBox = CarbonI.KernelInstrument(kernf, collect(2040:SSI:2380));
+# Generate convolution matrix:
+cM = CarbonI.generate_conv_matrix(m,wl, Δwl)
 ####
 
 # Number of layers:
@@ -72,7 +74,7 @@ sza = parameters.sza
 # Get prior covariance matrix:
 n_state = length(x);
 Sₐ = zeros(n_state,n_state);
-rel_error = 0.05;
+rel_error = 0.25;
 # vcd_ratio = profile_caltech.vcd_dry ./ mean(profile_caltech.vcd_dry)
 	
 # Fill the diagonal for the trace gases (hard-coded indices, so we have to be careful here):
@@ -111,14 +113,14 @@ Se = Diagonal((1e-5* ones(length(lociBox.ν_out))).^2);
 
 
 # Start defining column averaging kernels:
-h_co2 = zeros(length(x2));
-h_co2_ = zeros(length(x2));
-h_ch4 = zeros(length(x2));
-h_h2o = zeros(length(x2));
-h_co  = zeros(length(x2));
-h_hdo = zeros(length(x2));
-h_n2o = zeros(length(x2));
-h_c2h6 = zeros(length(x2));
+h_co2 = zeros(length(x));
+h_co2_ = zeros(length(x));
+h_ch4 = zeros(length(x));
+h_h2o = zeros(length(x));
+h_co  = zeros(length(x));
+h_hdo = zeros(length(x));
+h_n2o = zeros(length(x));
+h_c2h6 = zeros(length(x));
 ratio = profile.vcd_dry/sum(profile.vcd_dry);
 h_co2[1:10] .= ratio;
 h_h2o[11:20] .= ratio;
@@ -135,7 +137,7 @@ N = length(lociBox.ν_out)
 max_no_of_iter = 6
 
 # Define the state vector for each iteration:
-x_all   = zeros((length(x2),max_no_of_iter+1))
+x_all   = zeros((length(x),max_no_of_iter+1))
 F_all   = zeros((N,max_no_of_iter))
 
 # Define measurement here
@@ -147,6 +149,7 @@ x = [vmr_co2; vmr_h2o; vmr_ch4; vmr_co; vmr_n2o; 0.1*vmr_hdo;0.1*vmr_co2;0.1*vmr
 
 x_all[:,1]=x
 
+A = zeros(n_state,n_state)
 
 for i=1:max_no_of_iter
     @show i
@@ -155,6 +158,7 @@ for i=1:max_no_of_iter
 	Kᵢ = DiffResults.jacobian(result);
     Fᵢ = DiffResults.value(result);
     Gain = inv(Kᵢ'inv(Se)Kᵢ + inv(Sₐ))Kᵢ'inv(Se);
+    A.=  Gain*Kᵢ
     x_all[:,i+1] = xa + Gain * (y - Fᵢ + Kᵢ *(x_all[:,i]-xa))
     #@show h_co2'*x_all[:,end,end]*1e6
     F_all[:,i] = Fᵢ

@@ -244,6 +244,15 @@ function conv_spectra(m::KernelInstrument, ν, spectrum)
     return interp_cubic(m.ν_out)
 end;
     
+function generate_conv_matrix(m::KernelInstrument, wl_in, Δwl)
+    s = zeros(length(m.ν_out), length(wl_in))
+    x_ = Δwl .* ((1:length(m.kernel.parent)) .+ m.kernel.offsets[1])
+    interp_cubic = CubicSplineInterpolation(x_, m.kernel.parent,extrapolation_bc = 0)
+    for i in axes(s,2), j in axes(s,1)
+        s[j,i] = interp_cubic(m.ν_out[j] .- wl_in[i])
+    end
+    return sparse(s)
+end;
 
 "Reduce profile dimensions"
 function reduce_profile(n::Int, profile::AtmosphericProfile, σ_matrix)
