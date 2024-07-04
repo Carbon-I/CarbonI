@@ -55,6 +55,7 @@ function forward_model_sat_x(𝐱::AbstractArray{FT} ;sun = solarIrr, instrument
     L = T_conv;
     # x-axis for polynomial [-1,1], enables legendre later:
     x_poly = CarbonI.rescale_x(instrument.ν_out)
+    #x_poly = CarbonI.rescale_x(wl)
    return L .* poly.(x_poly) 
 end
 

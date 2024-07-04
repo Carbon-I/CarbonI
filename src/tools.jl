@@ -40,7 +40,7 @@ end;
 end;
 
 "Read atmospheric profile (just works for our file, can be generalized"
-function read_atmos_profile(file::String, lat::Real, lon::Real, timeIndex; g₀=9.8196)
+function read_atmos_profile(file::String, lat::Real, lon::Real, timeIndex; g₀=9.807)
     @assert 1 <= timeIndex <= 4
 
     ds = Dataset(file)
@@ -159,7 +159,7 @@ function read_atmos_profile_MERRA2(file::String, lat::Real, lon::Real, timeIndex
 end;
 
 "Read atmospheric profile (just works for our file, can be generalized"
-function generate_atmos_profile(T,p,q; g₀=9.8196)
+function generate_atmos_profile(T,p,q; g₀=9.807)
     FT = eltype(T)
     @assert length(p) ==  length(T)+1 == length(q)+1
     
@@ -271,16 +271,21 @@ function reduce_profile(n::Int, profile::AtmosphericProfile, σ_matrix)
     vmr_h2o  = zeros(FT, n);
     vcd_dry  = zeros(FT, n);
     vcd_h2o  = zeros(FT, n);
-
+    
     for i = 1:n
         ind = findall(a[i] .< profile.p .<= a[i + 1]);
-        σ_matrix_lr[:,i,:] = mean(σ_matrix[:,ind,:], dims=2);
+        h = profile.vcd_dry[ind]
+        h ./= sum(h)
+        # This has to be weighted by vcd_dry!
+        for iGas=1:dims[3]
+            σ_matrix_lr[:,i,iGas] = σ_matrix[:,ind,iGas] * h
+        end
         p_levels[i] = a[i]
         p_levels[i + 1] = a[i+1]
         p_full[i] = mean(profile.p[ind])
-        T[i] = mean(profile.T[ind])
-        q[i] = mean(profile.q[ind])
-        vmr_h2o[i] = mean(profile.vmr_h2o[ind])
+        T[i] = profile.T[ind]' * h
+        q[i] = profile.q[ind]' * h
+        vmr_h2o[i] = profile.vmr_h2o[ind]' * h
         vcd_dry[i] = sum(profile.vcd_dry[ind])
         vcd_h2o[i] = sum(profile.vcd_h2o[ind])
     end

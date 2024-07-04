@@ -32,6 +32,8 @@ profile_hr = CarbonI.generate_atmos_profile(parameters.T, 100*parameters.p, para
 # Reduce dimensions, group layers together to get roughly layers of equal pressure difference:
 n_layers = 10
 profile, σ_matrix = CarbonI.reduce_profile(n_layers,profile_hr, σ_matrix_hr)
+#profile = profile_hr
+#σ_matrix = σ_matrix_hr
 
 # Use a flat solar spectrum here (these are small in the 2 micron range anyhow):
 solarIrr = ones(length(wl));
@@ -60,13 +62,13 @@ vmr_n2o = zeros(nL) .+ 320e-9
 #vmr_n2o[1:3] .= 100e-9
 vmr_hdo = vmr_h2o * 0.9
 vmr_c2h6 = zeros(nL) .+ 1.0e-9
-vmrs = [vmr_co2, vmr_h2o, vmr_ch4,vmr_co, vmr_n2o, 0.1*vmr_hdo, 0.1*vmr_co2, 0.1vmr_c2h6];
+vmrs = [vmr_co2, vmr_h2o, vmr_ch4,vmr_co, vmr_n2o, 0.1e-9*vmr_hdo, 0.1e-9*vmr_co2, 0.1e-9vmr_c2h6];
 
 # Define a polynomial scaling for the surface polynomial
-p = Legendre([2.0,0.0001,0.000001,0.0001,0.000001]);
+p = Legendre([2.0,0.000,0.00000,0.000,0.00000]);
 
 # Define our state vector:
-x = [vmr_co2; vmr_h2o; vmr_ch4; vmr_co; vmr_n2o; vmr_hdo;vmr_co2;vmr_c2h6;   p[:] ];
+x = [vmr_co2; vmr_h2o; vmr_ch4;vmr_co; vmr_n2o; 0.1e-9*vmr_hdo; 0.1e-9*vmr_co2; 0.1e-9vmr_c2h6;   p[:] ];
 
 # Get SZA from Parameter file:
 sza = parameters.sza
@@ -74,7 +76,7 @@ sza = parameters.sza
 # Get prior covariance matrix:
 n_state = length(x);
 Sₐ = zeros(n_state,n_state);
-rel_error = 0.25;
+rel_error = 0.001;
 # vcd_ratio = profile_caltech.vcd_dry ./ mean(profile_caltech.vcd_dry)
 	
 # Fill the diagonal for the trace gases (hard-coded indices, so we have to be careful here):
@@ -144,7 +146,7 @@ F_all   = zeros((N,max_no_of_iter))
 y = R_conv_carbonI
 
 # Define a polynomial scaling
-p = Legendre([maximum(y),0.0001,0.000001,0.0001,0.000001]);
+p = Legendre([maximum(y),0.0000001,0.000000001,0.0000001,0.000000001]);
 x = [vmr_co2; vmr_h2o; vmr_ch4; vmr_co; vmr_n2o; 0.1*vmr_hdo;0.1*vmr_co2;0.1*vmr_c2h6;   p[:] ];
 
 x_all[:,1]=x
@@ -161,6 +163,7 @@ for i=1:max_no_of_iter
     Gain = inv(Kᵢ'inv(Se)Kᵢ + inv(Sₐ))Kᵢ'inv(Se);
     A.=  Gain*Kᵢ
     x_all[:,i+1] = xa + Gain * (y - Fᵢ + Kᵢ *(x_all[:,i]-xa))
+    println("Column averaged CO2: ", h_co2' * x_all[:,i+1] * 1e6)
     #@show h_co2'*x_all[:,end,end]*1e6
     F_all[:,i] = Fᵢ
 end
@@ -170,9 +173,11 @@ println("Column averaged CO2: ", h_co2' * x_final * 1e6,"ppm")
 println("Column averaged CH4: ", h_ch4' * x_final * 1e9,"ppb")
 println("Column averaged N2O: ", h_n2o' * x_final * 1e9,"ppb")
 println("Column averaged H2O: ", h_h2o' * x_final * 1e6,"ppm")
-println("Column averaged CO: ", h_co' * x_final * 1e9,"ppb")
+println("Column averaged CO: ",   h_co' * x_final * 1e9,"ppb")
 
 
 plot(lociBox.ν_out, F_all[:,end],label="Carbon-I fit")
 plot!(lociBox.ν_out, y, label="Carbon-I spectrum (synthetically generated with vSmartMOM)")
 
+# CO2 column kernel:
+plot(((h_co2'*A)[1,:]./h_co2)[1:10], profile.p, yflip=true, label="CO2 kernel")
