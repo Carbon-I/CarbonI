@@ -99,7 +99,7 @@ scattering:
       σ:              2.0           # geometric standard deviation (µm)
       nᵣ:             1.384         # Real part of refractive index1.384E+00 -1.260E-03
       nᵢ:             1.26e-3       # Imag part of refractive index  
-      p₀:             700.0         # Pressure peak (hPa)
+      p₀:             800.0         # Pressure peak (hPa)
       σp:             50.0          # Pressure peak width (hPa)
   # Maximum aerosol particle radius for quadrature points/weights (µm)
   r_max:          50.0

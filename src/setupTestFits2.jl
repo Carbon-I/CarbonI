@@ -65,7 +65,7 @@ vmr_c2h6 = zeros(nL) .+ 1.0e-9
 vmrs = [vmr_co2, vmr_h2o, vmr_ch4,vmr_co, vmr_n2o, 0.1e-9*vmr_hdo, 0.1e-9*vmr_co2, 0.1e-9vmr_c2h6];
 
 # Define a polynomial scaling for the surface polynomial
-p = Legendre([2.0,0.000001,0.00000001,0.0000001,0.000000001,0.000000001]);
+p = Legendre([2.0,0.000001,0.00000001,0.0000001,0.000000001]);
 
 # Define our state vector:
 x = [vmr_co2; vmr_h2o; vmr_ch4;vmr_co; vmr_n2o; 0.1e-9*vmr_hdo; 0.1e-9*vmr_co2; 0.1e-9*vmr_c2h6;   p[:] ];
@@ -76,7 +76,7 @@ sza = parameters.sza
 # Get prior covariance matrix:
 n_state = length(x);
 Sₐ = zeros(n_state,n_state);
-rel_error = 0.05;
+rel_error = 0.01;
 # vcd_ratio = profile_caltech.vcd_dry ./ mean(profile_caltech.vcd_dry)
 	
 # Fill the diagonal for the trace gases (hard-coded indices, so we have to be careful here):
@@ -85,7 +85,7 @@ for i=1:80
 end
 # higher for H2O
 for i=11:19
-	Sₐ[i,i] = (0.1*x[i])^2   
+	Sₐ[i,i] = (0.15*x[i])^2   
 end
 #for i=41:49
 #	Sₐ[i,i] = (0.5*x[i])^2   
@@ -93,19 +93,18 @@ end
 
 # Enlarge prior errors near the surface dramatically:
 #Sₐ[9,9] = (0.02*x[9])^2
-Sₐ[10,10] = (1*x[10])^2
+Sₐ[10,10] = (20*x[10])^2
 #Sₐ[19,19] = (0.02*x[19])^2
-Sₐ[20,20] = (1*x[20])^2
+Sₐ[20,20] = (20*x[20])^2
 #Sₐ[29,29] = (0.02*x[29])^2
-Sₐ[30,30] = (1*x[30])^2
+Sₐ[30,30] = (20*x[30])^2
 #Sₐ[39,39] = (0.02*x[39])^2
-Sₐ[40,40] = (1*x[40])^2
-#Sₐ[48,48] = (0.1*x[48])^2
-#Sₐ[49,49] = (0.1*x[49])^2
-Sₐ[50,50] = (1*x[50])^2
+Sₐ[40,40] = (20*x[40])^2
+#Sₐ[49,49] = (0.02*x[49])^2
+Sₐ[50,50] = (20*x[50])^2
 #Sₐ[60,60] = (20*x[60])^2
-Sₐ[70,70] = (1*x[70])^2
-Sₐ[80,80] = (1*x[80])^2
+#Sₐ[70,70] = (20*x[70])^2
+#Sₐ[80,80] = (20*x[80])^2
 # Put in arbitrarily high numbers for the polynomial term, so these won't be constrained at all! 
 for i=81:n_state
 	Sₐ[i,i] = 1e5;
@@ -118,8 +117,8 @@ xa = x;
 errors = 1e10*ones(length(lociBox.ν_out));
 # Only use a subset:
 #errors[1:200] .=1e-5
-errors[200:400] .= 0.0001
-#errors .= 0.0001
+errors[200:400] .=1e-5
+#errors .=1e-5
 Se = Diagonal(errors.^2);
 
 #y = CarbonI.conv_spectra(lociBox, wl, spec);
@@ -155,10 +154,10 @@ max_no_of_iter = 6
 y = R_conv_carbonI
 
 # Define a polynomial scaling
-p = Legendre([maximum(y),0.0000001,0.000000001,0.0000001,0.000000001, 0.000001]);
+p = Legendre([maximum(y),0.0000001,0.000000001,0.0000001,0.000000001,0.0000001,0.000000001]);
 x = [vmr_co2; vmr_h2o; vmr_ch4; vmr_co; vmr_n2o; 0.1e-10*vmr_hdo;0.1e-10*vmr_co2;0.1e-10*vmr_c2h6;   p[:] ];
 
-n_state = length(x);
+
 
 # Define the state vector for each iteration:
 x_all   = zeros((length(x),max_no_of_iter+1))
@@ -180,9 +179,7 @@ for i=1:max_no_of_iter
     println("Column averaged CO2: ", (h_co2' * x_all[:,i+1] * 1e6)/400)
     println("Column averaged N2O: ", (h_n2o' * x_all[:,i+1] * 1e6)/0.32)
     println("Column averaged CH4: ", (h_ch4' * x_all[:,i+1] * 1e9)/2000)
-    #@show x_all[41:50,i+1]
-    res = y-Fᵢ
-    @show res' * res
+    @show x_all[41:50,i+1]
     #@show h_co2'*x_all[:,end,end]*1e6
     F_all[:,i] = Fᵢ
 end
