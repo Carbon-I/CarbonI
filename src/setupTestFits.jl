@@ -76,9 +76,9 @@ sza = parameters.sza
 # Get prior covariance matrix:
 n_state = length(x);
 Sₐ = zeros(n_state,n_state);
-rel_error = 0.05;
+rel_error = 0.1;
 # vcd_ratio = profile_caltech.vcd_dry ./ mean(profile_caltech.vcd_dry)
-	
+dims = size(σ_matrix)	
 # Fill the diagonal for the trace gases (hard-coded indices, so we have to be careful here):
 for i=1:80
 	Sₐ[i,i] = (rel_error*x[i])^2   
@@ -87,25 +87,55 @@ end
 for i=11:19
 	Sₐ[i,i] = (0.1*x[i])^2   
 end
+
+for i=1:10
+    #Sₐ[i,i] = (rel_error*x[i])^2 
+    for j=1:10
+        if i !=j
+            dist = abs(i-j)
+            Sₐ[i,j] = (rel_error * exp(-dist/8) * x[i])^2
+            Sₐ[i,j] = (rel_error * 0.9 * x[i])^2
+        end
+    end
+end
+
+for i=21:30
+    for j=21:30
+        if i !=j
+            dist = abs(i-j)
+            Sₐ[i,j] = (rel_error * exp(-dist/8) * x[i])^2
+            Sₐ[i,j] = (rel_error * 0.9 * x[i])^2
+        end
+    end
+end
+for i=41:50
+    for j=41:50
+        if i !=j
+            dist = abs(i-j)
+            Sₐ[i,j] = (rel_error * exp(-dist/8) * x[i])^2
+            Sₐ[i,j] = (rel_error * 0.9 * x[i])^2
+        end
+    end
+end
 #for i=41:49
 #	Sₐ[i,i] = (0.5*x[i])^2   
 #end
 
 # Enlarge prior errors near the surface dramatically:
 #Sₐ[9,9] = (0.02*x[9])^2
-Sₐ[10,10] = (1*x[10])^2
+#Sₐ[10,10] = (1*x[10])^2
 #Sₐ[19,19] = (0.02*x[19])^2
-Sₐ[20,20] = (1*x[20])^2
+#Sₐ[20,20] = (1*x[20])^2
 #Sₐ[29,29] = (0.02*x[29])^2
-Sₐ[30,30] = (1*x[30])^2
+#Sₐ[30,30] = (1*x[30])^2
 #Sₐ[39,39] = (0.02*x[39])^2
-Sₐ[40,40] = (1*x[40])^2
+#Sₐ[40,40] = (1*x[40])^2
 #Sₐ[48,48] = (0.1*x[48])^2
 #Sₐ[49,49] = (0.1*x[49])^2
-Sₐ[50,50] = (1*x[50])^2
+#Sₐ[50,50] = (1*x[50])^2
 #Sₐ[60,60] = (20*x[60])^2
-Sₐ[70,70] = (1*x[70])^2
-Sₐ[80,80] = (1*x[80])^2
+#Sₐ[70,70] = (1*x[70])^2
+#Sₐ[80,80] = (1*x[80])^2
 # Put in arbitrarily high numbers for the polynomial term, so these won't be constrained at all! 
 for i=81:n_state
 	Sₐ[i,i] = 1e5;
@@ -117,9 +147,11 @@ xa = x;
 # Define measurement error covariance matrix:
 errors = 1e10*ones(length(lociBox.ν_out));
 # Only use a subset:
-#errors[1:200] .=1e-5
-errors[200:400] .= 0.0001
-#errors .= 0.0001
+errors[1:200] .= 0.0001
+#errors[300:400] .= 0.0001
+errors[1:480] .= 0.0001
+
+#errors[1:480] .= 0.0001
 Se = Diagonal(errors.^2);
 
 #y = CarbonI.conv_spectra(lociBox, wl, spec);

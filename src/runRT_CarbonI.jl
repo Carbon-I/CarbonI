@@ -16,9 +16,9 @@ emitBox = CarbonI.KernelInstrument(CarbonI.box_kernel(8.5, Δwl), wl_emit);
 parameters = parameters_from_yaml("/home/cfranken/code/gitHub/CarbonI/src/yaml/carbon-i.yaml")
 model = model_from_parameters(parameters);
 
-model.params.brdf[1] = vSmartMOM.CoreRT.LambertianSurfaceScalar{Float64}(0.3)
+model.params.brdf[1] = vSmartMOM.CoreRT.LambertianSurfaceScalar{Float64}(0.06)
 ref = sum(model.τ_aer[1][1,:]);
-model.τ_aer[1][1,:] .*= 0.075/ref
+model.τ_aer[1][1,:] .*= 0.1/ref
 
 a = rt_run(model)
 
