@@ -17,6 +17,8 @@ using DelimitedFiles
 using ForwardDiff, DiffResults
 
 include("tools.jl")
+include("priorCovariances.jl")
+include("instrument_shapes.jl")
 include("forwardModel.jl")
 include("GeosChem/GeosChemReader.jl")
 include("GeosChem/tools.jl")

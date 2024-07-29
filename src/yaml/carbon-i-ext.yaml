@@ -4,7 +4,7 @@
 radiative_transfer: 
   # Spectral bands (list of ν_start:ν_step:ν_end, in cm⁻¹)
   spec_bands: 
-    - (1e7/2385):0.01:(1e7/2030)
+    - (1e7/2385):0.01:(1e7/1981)
   # Bidirectional Reflectance Distribution Function (BRDF) per band
   surface: 
     - LambertianSurfaceScalar(0.05)
@@ -67,9 +67,9 @@ atmospheric_profile:
 absorption:
   # List of molecules per spectral band
   molecules:
-  - [H2O,CO2,CH4, N2O, CO, CO2_13, C2H6]
+  - [H2O,CO2,CH4, N2O, CO]
   LUTfiles:
-  - ["data/h2o_model_tccon.jld2", "data/co2_model.jld2","data/ch4_model.jld2","data/n2o_model.jld2","data/co_model.jld2","data/co2_model_iso2.jld2","data/c2h6_model.jld2"]
+  - ["data/h2o_model_tccon.jld2", "data/co2_model.jld2","data/ch4_model.jld2","data/n2o_model.jld2","data/co_model.jld2"]
   #  - [H2O,CO2,CH4, N2O, CO]  # Molecules in Band #1 (using LUT later)
   # LookUpTable files (Interpolation Model saved as JLD2!)
   
@@ -86,8 +86,6 @@ absorption:
     CH4:  2e-6
     N2O:  0.32e-6
     CO:   0.1e-6
-    CO2_13: 0.0004
-    C2H6: 1.0e-9
   # Broadening function (Doppler/Lorentz/Voigt)
   broadening:         Voigt()
   # Complex error function for Voigt calculations

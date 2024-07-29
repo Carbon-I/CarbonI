@@ -28,7 +28,7 @@ function forward_model_x(𝐱::AbstractArray{FT} ;sun = solarIrr, instrument=loc
    return L .* poly.(x_poly) 
 end
 
-function forward_model_sat_x(𝐱::AbstractArray{FT} ; sun = solarIrr, instrument=lociBox, convMatrix=cM, sza=sza, vza = 0.0, profile=profile,σ_matrix=σ_matrix, wl=wl) where {FT}
+function forward_model_sat_x(𝐱::AbstractArray{FT} ; sun = solarIrr, instrument=wl_ci, convMatrix=cM, sza=sza, vza = 0.0, profile=profile,σ_matrix=σ_matrix, wl=wl) where {FT}
     dims = size(σ_matrix)
 	#@show dims
     vmrs = reshape(𝐱[1:(dims[2]*dims[3])],(dims[2],dims[3]) )
@@ -51,7 +51,7 @@ function forward_model_sat_x(𝐱::AbstractArray{FT} ; sun = solarIrr, instrumen
     T_conv = cM * T
     #L = T_conv;
     # x-axis for polynomial [-1,1], enables legendre later:
-    x_poly = CarbonI.rescale_x(instrument.ν_out)
+    x_poly = CarbonI.rescale_x(instrument)
     #x_poly = CarbonI.rescale_x(wl)
    return T_conv .* poly.(x_poly) 
 end

@@ -1,3 +1,4 @@
+# Load cross section tables (can toggle to also use ABSCO, doesn't cover full range though)
 function loadXSModels()
     co2 = load_interpolation_model("data/co2_model.jld2")
     co2_iso2 = load_interpolation_model("data/co2_model_iso2.jld2")
@@ -261,6 +262,7 @@ function reduce_profile(n::Int, profile::AtmosphericProfile, σ_matrix)
     # New rough half levels (boundary points)
     #a = range(0, maximum(profile.p_levels), length=n + 1)
     a = reduce_pressure_levels(profile.p_levels, n+1)
+    n = length(a)-1
     dims = size(σ_matrix)
     FT = eltype(σ_matrix)
     σ_matrix_lr = zeros(FT, dims[1], n, dims[3])
@@ -271,9 +273,11 @@ function reduce_profile(n::Int, profile::AtmosphericProfile, σ_matrix)
     vmr_h2o  = zeros(FT, n);
     vcd_dry  = zeros(FT, n);
     vcd_h2o  = zeros(FT, n);
-    
+    indis = []
     for i = 1:n
         ind = findall(a[i] .< profile.p .<= a[i + 1]);
+        push!(indis,ind)
+        @show ind
         h = profile.vcd_dry[ind]
         h ./= sum(h)
         # This has to be weighted by vcd_dry!
@@ -290,7 +294,7 @@ function reduce_profile(n::Int, profile::AtmosphericProfile, σ_matrix)
         vcd_h2o[i] = sum(profile.vcd_h2o[ind])
     end
 
-    return AtmosphericProfile(lat, lon, psurf, T, q, p_full, p_levels, vmr_h2o, vcd_dry, vcd_h2o), σ_matrix_lr
+    return AtmosphericProfile(lat, lon, psurf, T, q, p_full, p_levels, vmr_h2o, vcd_dry, vcd_h2o), σ_matrix_lr, indis
 end;
 
 function reduce_pressure_levels(pressures, n::Int)
@@ -312,18 +316,25 @@ function reduce_pressure_levels(pressures, n::Int)
     # Find the closest pressure levels in the sorted array to the target pressures
     new_pressures = Array{Float64,1}(undef, n)
     for i in 1:n
-        closest_index = argmin(abs.(sorted_pressures .- target_pressures[i]))
+        diff = sorted_pressures .- target_pressures[i]
+        #@show diff, sorted_pressures
+        indi = findall(diff .>= 0)
+        closest_index = indi[1]
+        @show i, target_pressures[i]/100, closest_index
         new_pressures[i] = sorted_pressures[closest_index]
+        @show new_pressures[i]
     end
-
+    @show new_pressures
     # Remove duplicates in case multiple target pressures are closest to the same pressure level
     new_pressures = unique(new_pressures)
 
+    #@show length(new_pressures)
     # If we have fewer levels than desired due to duplicates, refill the remaining levels
-    while length(new_pressures) < n
-        remaining_pressures = setdiff(sorted_pressures, new_pressures)
-        new_pressures = vcat(new_pressures, remaining_pressures[1])
-    end
+    #while length(new_pressures) < n
+    #    remaining_pressures = setdiff(sorted_pressures, new_pressures)
+    #    new_pressures = vcat(new_pressures, remaining_pressures[1])
+    #    @show new_pressures
+    #end
 
     return sort(new_pressures)
 end
