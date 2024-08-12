@@ -252,11 +252,11 @@ function generate_conv_matrix(m::KernelInstrument, wl_in, Δwl)
     for i in axes(s,2), j in axes(s,1)
         s[j,i] = interp_cubic(m.ν_out[j] .- wl_in[i])
     end
-    return sparse(s)
+    return s
 end;
 
 "Reduce profile dimensions"
-function reduce_profile(n::Int, profile::AtmosphericProfile, σ_matrix)
+function reduce_profile(n::Int, profile::AtmosphericProfile{FT}, σ_matrix, gasProfiles) where {FT}
     @assert n < length(profile.T)
     @unpack lat, lon, psurf = profile
     # New rough half levels (boundary points)
@@ -264,7 +264,7 @@ function reduce_profile(n::Int, profile::AtmosphericProfile, σ_matrix)
     a = reduce_pressure_levels(profile.p_levels, n+1)
     n = length(a)-1
     dims = size(σ_matrix)
-    FT = eltype(σ_matrix)
+    #FT = eltype(σ_matrix)
     σ_matrix_lr = zeros(FT, dims[1], n, dims[3])
     T = zeros(FT, n);
     q = zeros(FT, n);
@@ -274,6 +274,7 @@ function reduce_profile(n::Int, profile::AtmosphericProfile, σ_matrix)
     vcd_dry  = zeros(FT, n);
     vcd_h2o  = zeros(FT, n);
     indis = []
+    gasProfile_low_res = [zeros(n) for i in 1:length(gasProfiles)]
     for i = 1:n
         ind = findall(a[i] .< profile.p .<= a[i + 1]);
         push!(indis,ind)
@@ -282,7 +283,16 @@ function reduce_profile(n::Int, profile::AtmosphericProfile, σ_matrix)
         h ./= sum(h)
         # This has to be weighted by vcd_dry!
         for iGas=1:dims[3]
-            σ_matrix_lr[:,i,iGas] = σ_matrix[:,ind,iGas] * h
+            @show iGas, ind
+            @show size(gasProfiles[iGas])
+            # Weigh by gas VCD high res profile:
+            gasP = gasProfiles[iGas][ind] .* profile.vcd_dry[ind]
+            gas_vmr = sum(gasP)/sum(profile.vcd_dry[ind])
+            gasProfile_low_res[iGas][i] = gas_vmr
+            gasP ./= sum(gasP)
+            @show gas_vmr, mean(gasProfiles[iGas][ind])
+            σ_matrix_lr[:,i,iGas] = σ_matrix[:,ind,iGas] *gasP
+            @show sum(gasP)
         end
         p_levels[i] = a[i]
         p_levels[i + 1] = a[i+1]
@@ -294,7 +304,7 @@ function reduce_profile(n::Int, profile::AtmosphericProfile, σ_matrix)
         vcd_h2o[i] = sum(profile.vcd_h2o[ind])
     end
 
-    return AtmosphericProfile(lat, lon, psurf, T, q, p_full, p_levels, vmr_h2o, vcd_dry, vcd_h2o), σ_matrix_lr, indis
+    return AtmosphericProfile(lat, lon, psurf, T, q, p_full, p_levels, vmr_h2o, vcd_dry, vcd_h2o), σ_matrix_lr, indis, gasProfile_low_res
 end;
 
 function reduce_pressure_levels(pressures, n::Int)

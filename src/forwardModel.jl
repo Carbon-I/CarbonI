@@ -53,7 +53,35 @@ function forward_model_sat_x(𝐱::AbstractArray{FT} ; sun = solarIrr, instrumen
     # x-axis for polynomial [-1,1], enables legendre later:
     x_poly = CarbonI.rescale_x(instrument)
     #x_poly = CarbonI.rescale_x(wl)
-   return T_conv .* poly.(x_poly) 
+   return T_conv .* poly.(x_poly)
+end
+
+function forward_model_sat_x2(𝐱::AbstractArray{FT} ; sun = solarIrr::Vector{Float64}, indHR=indHR,indHR2=indHR2, indLR = indLR::UnitRange{Int64}, instrument=wl_ci::Vector{Float64}, convMatrix=cM::Matrix{Float64}, sza=sza::Float64, vza = 0.0, vcd_dry=profile.vcd_dry::Vector{Float64},σ_matrix=σ_matrix::Array{Float64,3})  where{FT}
+    dims = size(σ_matrix)
+	#@show dims
+    vmrs = reshape(𝐱[1:(dims[2]*dims[3])],(dims[2],dims[3]) )
+    poly = Legendre(𝐱[dims[2]*dims[3]+1:end])
+    #@show poly
+    # Air Mass Factor
+    AMF = 1/cosd(sza) + 1/cosd(vza);
+    
+    # Total sum of τ
+    ∑τ = zeros(FT,length(indHR))
+	#@show size(vmrs,2)
+    for i=1:size(vmrs,2)
+        for j=1:dims[2]
+            @views ∑τ[:] .+= σ_matrix[indHR,j,i] .* (vmrs[j,i] .* vcd_dry[j])
+        end
+    end
+    # Transmission without Tsolar
+    @views T = reverse(exp.(-AMF * ∑τ))
+    
+    @views T_conv = cM[indLR,indHR2] * T
+    #L = T_conv;
+    # x-axis for polynomial [-1,1], enables legendre later:
+    @views x_poly = CarbonI.rescale_x(instrument[indLR])
+    #x_poly = CarbonI.rescale_x(wl)
+   return T_conv .* poly.(x_poly)
 end
 
 function lin_forward_model_sat_x(𝐱::AbstractArray{FT} ;∑τ=∑τ, sun = solarIrr, instrument=lociBox, convMatrix=cM, sza=sza, vza = 0.0, profile=profile,σ_matrix=σ_matrix, wl=wl) where {FT}

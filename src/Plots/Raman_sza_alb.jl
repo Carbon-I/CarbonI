@@ -8,15 +8,15 @@ FT = Float64
 param_set = IP.InsolationParameters(FT)
 
 # Define local overpass times:
-hours = [9, 11, 13]
-minutes = [30, 0, 30]
+hours = [9, 11, 12]
+minutes = [30, 30, 30]
 
 #Take January 1st as an example
 date0 = DateTime("2000-01-01T11:58:56.816")
 
 lat, lon = [34.15, 0.0]
 lat = -90.0:90.0
-date = DateTime(2020, 01, 10)
+date = DateTime(2020, 03, 10)
 timezone = +0 # Just take local time
 od = Insolation.OrbitalData()
 
@@ -28,8 +28,8 @@ SZAs = [rad2deg(acos(tup[2])) for tup in S]
 mus  = [tup[2] for tup in S]
 
 plot(lat, SZAs[1,:], label="9:30")
-plot!(lat, SZAs[2,:], label="11:00")
-plot!(lat, SZAs[3,:], label="13:30")
+plot!(lat, SZAs[2,:], label="11:30")
+plot!(lat, SZAs[3,:], label="12:30")
 xlabel!("Latitude")
 ylabel!("Solar Zenith Angle (deg)")
 

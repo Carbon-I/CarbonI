@@ -121,7 +121,7 @@ errors = 1e10*ones(length(wl_ci));
 #errors[1:480] .= 0.00001
 ind = 1:162
 #errors[ind] .= 0.00002
-errors[500:502] .= 0.00002
+errors[490:492] .= 0.00002
 errors[257:410] .= 0.00002
 errors[1:2] .= 0.00002
 #errors[304:380] .= 0.00002
@@ -185,27 +185,17 @@ ys = []
 
 
 #for i=1:200
-for aodd = 0.00:0.003:0.1   
-    for albedo = 0.03:0.01:0.35
- 
-    ##model.τ_aer[1][1,:] .= aodd .* s_aod
-    #@show sum(model.τ_aer[1][1,:])
-    model.τ_aer[1][1,:] .= aodd .* s_aod
-    model.params.brdf[1] = vSmartMOM.CoreRT.LambertianSurfaceScalar{Float64}(albedo)
-    #model.params.brdf[1] = vSmartMOM.CoreRT.LambertianSurfaceScalar{Float64}(0.2)
-    a = rt_run(model)
-    # Get reflected radiance:   
-    R = a[1][1,1,:];
-    # Interpolate to the grid:
-    rad_inter = CubicSplineInterpolation(gridi, R);
-    R_conv_carbonI = cM*rad_inter(1e7./wl);
-    x[73] = maximum(R_conv_carbonI)
+for key in sorted_keys
+    @show key
+    y = R_conv_carbonI_dict[key];# + 0.0002*randn(N)
+    
+    x[73] = maximum(y)
+    @show maximum(y)
     x_all[:,1]=x
-# Define measurement here
-y = R_conv_carbonI;# + 0.0002*randn(N)
-push!(ys, y)
+    push!(ys,y)
 
-
+    res = similar(y)
+    Ff = similar(y)
 
 res = similar(y)
 for i=1:max_no_of_iter

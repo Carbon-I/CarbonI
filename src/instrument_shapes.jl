@@ -1,6 +1,6 @@
 function create_carbonI_conv_matrix(wl::StepRangeLen{FT}) where FT
     # Define a Fixed instrument:
-    FWHM  = 1.0  # 
+    FWHM  = 1.7  # 
     SSI  = 0.68
     Δwl = wl.step.hi
     kern1 = CarbonI.box_kernel(2*SSI, Δwl)

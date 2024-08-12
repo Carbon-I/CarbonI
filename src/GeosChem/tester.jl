@@ -15,6 +15,8 @@ heatmap(sum(aod_ocpi[:,:,:,1], dims=3)[:,:,1]',color=:viridis); title!("AOD_OCPI
 heatmap(sum(aod_bcpi[:,:,:,1], dims=3)[:,:,1]',color=:viridis);title!("AOD_BCPI");savefig("/home/cfranken/AOD_BCPI.pdf")
 heatmap(sum(aod_strat[:,:,:,1], dims=3)[:,:,1]',color=:viridis);title!("AOD Stratosphere (550nm)");savefig("/home/cfranken/AODstrat.pdf")
 
+aod_2200nm = sum(aod_so4[:,:,:,1], dims=3)[:,:,1]' ./10.0 + sum(aod_ocpi[:,:,:,1], dims=3)[:,:,1]' ./10.0 + sum(aod_strat[:,:,:,1], dims=3)[:,:,1]' ./10 + sum(aod_sala[:,:,:,1], dims=3)[:,:,1]' ./5 + sum(aod_salc[:,:,:,1], dims=3)[:,:,1]'  + sum(aod_bcpi[:,:,:,1], dims=3)[:,:,1]' ./10
+
 total_aod_all = sum(aod_so4[:,:,:,1], dims=3)[:,:,1]' + sum(aod_sala[:,:,:,1], dims=3)[:,:,1]' + sum(aod_salc[:,:,:,1], dims=3)[:,:,1]' + sum(aod_ocpi[:,:,:,1], dims=3)[:,:,1]' + sum(aod_bcpi[:,:,:,1], dims=3)[:,:,1]' + sum(aod_strat[:,:,:,1], dims=3)[:,:,1]'
 
 dp = CarbonI.computeColumnAveragingOperator(geos)

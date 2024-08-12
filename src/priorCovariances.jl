@@ -32,7 +32,7 @@ function createErrorVector(p,p_utls,p_bl, rel_Error, vmr)
         if p[i] > p_bl
             σ[i] = rel_Error * 5 * vmr[i]
         elseif p[i] < p_utls
-            σ[i] = rel_Error * 0.01 * vmr[i]
+            σ[i] = rel_Error * 0.0001 * vmr[i]
         else
             σ[i] = rel_Error * vmr[i]
         end

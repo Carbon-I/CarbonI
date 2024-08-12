@@ -23,13 +23,31 @@ od = Insolation.OrbitalData()
 # Extract SZAs (can also just take mu):
 #SZAs = [rad2deg(acos(tup[2])) for tup in S]
 #SZA_interp = LinearInterpolation(lat, SZAs[2,:])
+od = Insolation.OrbitalData()
+## Test zero insolation at night
+# sunrise at equator
+date = Dates.DateTime(2020, 1, 1, 6, 11, 0)
+lon, lat = [FT(0.0), FT(0.0)]
+args = (
+    Insolation.helper_instantaneous_zenith_angle(date, date0, od, param_set)...,
+    lon,
+    lat,
+)
+
 
 function get_local_time_sza(lat, month, day, hours, minutes; od=od, date0=date0, param_set=param_set)
     date = DateTime(2020, month, day)
+    
     #@show date
     datetime = date + Dates.Hour(hours) + Dates.Minute(minutes)
-    S = solar_flux_and_cos_sza(datetime, date0, od, 0.0, lat, param_set)
-    return rad2deg(acos(S[2]))
+    args = (
+    Insolation.helper_instantaneous_zenith_angle(datetime, date0, od, param_set)...,
+    lon,
+    lat,
+)
+    #S = solar_flux_and_cos_sza(datetime, date0, od, 0.0, lat, param_set)
+    sza, azi, d = instantaneous_zenith_angle(args...)
+    return rad2deg(acos(sza)), azi
 end
 
 # Add topography as well:
