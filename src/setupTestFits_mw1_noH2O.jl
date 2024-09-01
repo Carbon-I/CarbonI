@@ -5,7 +5,7 @@ using NCDatasets, Polynomials, LinearAlgebra, SpecialPolynomials
 #using CairoMakie
 
 # Load spectra:
-@load "simulated_rads_all.jld2" R_conv_carbonI_dict
+@load "simulated_rads_all_noH2O.jld2" R_conv_carbonI_dict
 
 # Load spectroscopies:
 co2, ch4, h2o, hdo, n2o, co, co2_iso2, c2h6 = CarbonI.loadXSModels();
@@ -13,7 +13,7 @@ co2, ch4, h2o, hdo, n2o, co, co2_iso2, c2h6 = CarbonI.loadXSModels();
 # Read Solar Spectra (not used for the simple tests)
 # include("src/readSun.jl")
 # Define wavelength grid for forward model:
-Δwl = 0.004
+Δwl = 0.005
 wl = 2030:Δwl:2390
 # Define an instrument:
 cM, wl_ci = CarbonI.create_carbonI_conv_matrix(wl)
@@ -28,7 +28,7 @@ indHR2 = findall(wl_ci[indLR[1]]-5 .< wl .< wl_ci[indLR[end]]+5)
 include("src/forwardModel.jl")
 
 # Define species in the state vector:
-hitran_array = (co2, h2o, n2o, hdo,co2_iso2, ch4);
+hitran_array = (co2, n2o, co2_iso2, ch4);
 
 
 
@@ -67,7 +67,7 @@ vmr_c2h6 = zeros(nL) .+ 1.0e-9
 # Reduce dimensions, group layers together to get roughly layers of equal pressure difference:
 n_layers = 3
 #profile, σ_matrix, indis = CarbonI.reduce_profile(n_layers,profile_hr, σ_matrix_hr)
-profile, σ_matrix, indis, gasProfiles = CarbonI.reduce_profile(n_layers,profile_hr, σ_matrix_hr,[vmr_co2, vmr_h2o, vmr_n2o, 0.9*vmr_h2o, vmr_co2,vmr_ch4])
+profile, σ_matrix, indis, gasProfiles = CarbonI.reduce_profile(n_layers,profile_hr, σ_matrix_hr,[vmr_co2,  vmr_n2o, vmr_co2,vmr_ch4])
 n_layers = length(indis)
 
 # Use a flat solar spectrum here (these are small in the 2 micron range anyhow):
@@ -113,7 +113,7 @@ e_n2o[2] = 0.03*gasProfiles[3][2]
 
 dims = size(σ_matrix)	
 # Fill the diagonal for the trace gases (hard-coded indices, so we have to be careful here):
-e_coll = (e_co2, e_h2o, e_n2o, e_hdo, e_co2,e_ch4)
+e_coll = (e_co2, e_n2o, e_co2,e_ch4)
 iGas = length(e_coll)
 index = 1
 # Still needs to be smarter for H2O!
@@ -155,9 +155,9 @@ h_c2h6 = zeros(length(x));
 ratio = profile.vcd_dry/sum(profile.vcd_dry);
 h_co2[1:n_layers] .= ratio;
 h_h2o[1n_layers+1:2n_layers] .= ratio;
-h_n2o[2n_layers+1:3n_layers] .= ratio;
-h_hdo[3n_layers+1:4n_layers] .= ratio;
-h_co2_[4n_layers+1:5n_layers] .= ratio;
+h_n2o[1n_layers+1:2n_layers] .= ratio;
+h_co2_[2n_layers+1:3n_layers] .= ratio;
+#h_co2_[3n_layers+1:4n_layers] .= ratio;
 #h_c2h6[5n_layers+1:6n_layers] .= ratio;
 
 N = length(indLR)
@@ -249,7 +249,7 @@ for key in sorted_keys
     push!(co2,(h_co2' * x_all[:,end] * 1e6)/400)
     push!(co2_13, (h_co2_' * x_all[:,end] * 1e6)/400)
     #push!(ch4,(h_ch4' * x_all[:,end] * 1e9)/2000)
-    push!(h2o,(h_h2o' * x_all[:,end] * 1e6)/5313.104611587684)
+    #push!(h2o,(h_h2o' * x_all[:,end] * 1e6)/5313.104611587684)
     #push!(co2_13, (h_co2_' * x_all[:,end] * 1e6)/400)
     push!(resi, sqrt(res' * res))
     push!(resi2, res)

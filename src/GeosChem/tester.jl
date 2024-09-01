@@ -19,7 +19,12 @@ aod_2200nm = sum(aod_so4[:,:,:,1], dims=3)[:,:,1]' ./10.0 + sum(aod_ocpi[:,:,:,1
 
 total_aod_all = sum(aod_so4[:,:,:,1], dims=3)[:,:,1]' + sum(aod_sala[:,:,:,1], dims=3)[:,:,1]' + sum(aod_salc[:,:,:,1], dims=3)[:,:,1]' + sum(aod_ocpi[:,:,:,1], dims=3)[:,:,1]' + sum(aod_bcpi[:,:,:,1], dims=3)[:,:,1]' + sum(aod_strat[:,:,:,1], dims=3)[:,:,1]'
 
-dp = CarbonI.computeColumnAveragingOperator(geos)
+dp = CarbonI.computeColumnAveragingOperator(geos);
+tropo_lev = geos.data["tropopause_level"];
+xn2o = CarbonI.getColumnAverage(geos.data["N2O"], dp);
+xch4 = CarbonI.getColumnAverage(geos.data["CH4"], dp);
+xch4_trop = CarbonI.getTroposphericColumnAverage(geos.data["CH4"], dp, tropo_lev);
+xn2o_trop = CarbonI.getTroposphericColumnAverage(geos.data["N2O"], dp, tropo_lev);
 
 c2h6 = geos.data["C2H6"];
 xc2h6 = CarbonI.getColumnAverage(c2h6, dp)

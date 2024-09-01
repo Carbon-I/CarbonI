@@ -13,7 +13,7 @@ co2, ch4, h2o, hdo, n2o, co, co2_iso2, c2h6 = CarbonI.loadXSModels();
 # Read Solar Spectra (not used for the simple tests)
 # include("src/readSun.jl")
 # Define wavelength grid for forward model:
-Δwl = 0.004
+Δwl = 0.005
 wl = 2030:Δwl:2390
 # Define an instrument:
 cM, wl_ci = CarbonI.create_carbonI_conv_matrix(wl)
@@ -65,7 +65,7 @@ vmr_hdo = vmr_h2o
 vmr_c2h6 = zeros(nL) .+ 1.0e-9
 
 # Reduce dimensions, group layers together to get roughly layers of equal pressure difference:
-n_layers = 3
+n_layers = 5
 #profile, σ_matrix, indis = CarbonI.reduce_profile(n_layers,profile_hr, σ_matrix_hr)
 profile, σ_matrix, indis, gasProfiles = CarbonI.reduce_profile(n_layers,profile_hr, σ_matrix_hr,[vmr_co2, vmr_h2o, vmr_n2o, 0.9*vmr_h2o, vmr_co2,vmr_ch4])
 n_layers = length(indis)
@@ -92,24 +92,25 @@ n_state = length(x);
 Sₐ = zeros(n_state,n_state);
 
 rel_error = 0.25;
-correlationMatrix = CarbonI.createCorrelationMatrix(profile.p/1e2,0.0,1550)
-correlationMatrix_h2o = CarbonI.createCorrelationMatrix(profile.p/1e2,0.0,550)
+correlationMatrix = CarbonI.createCorrelationMatrix(profile.p/1e2,0.0,2550)
+correlationMatrix_h2o = CarbonI.createCorrelationMatrix(profile.p/1e2,0.0,150)
 
 # Create Diagonal errors for the trace gases:
 utls = 250.0
 bl   = 850.0
+test_2  = 800.0
 e_ch4  = CarbonI.createErrorVector(profile.p/1e2,utls,bl, rel_error, vmr_ch4)
-e_co2  = CarbonI.createErrorVector(profile.p/1e2,utls,bl, rel_error, gasProfiles[1])
+e_co2  = CarbonI.createErrorVector(profile.p/1e2,test_2,bl, rel_error, gasProfiles[1]; bl_error=1)
 #e_co2[end] = vmr_co2[end]*20
 e_h2o  = CarbonI.createErrorVector(profile.p/1e2,utls,bl, 2*rel_error, gasProfiles[2])
-e_n2o  = CarbonI.createErrorVector(profile.p/1e2,utls,bl, rel_error, gasProfiles[3])
+e_n2o  = CarbonI.createErrorVector(profile.p/1e2,test_2,bl, rel_error, gasProfiles[3])
 e_co   = CarbonI.createErrorVector(profile.p/1e2,utls,bl, rel_error, vmr_co)
 e_hdo  = CarbonI.createErrorVector(profile.p/1e2,utls,bl, 2*rel_error, gasProfiles[4])
 e_c2h6 = CarbonI.createErrorVector(profile.p/1e2,utls,bl, rel_error, vmr_c2h6)
 
 # Set center to 0 for Co2 and N2O:
-e_co2[2] = 0.03*gasProfiles[1][2]
-e_n2o[2] = 0.03*gasProfiles[3][2]
+#e_co2[2] = 0.03*gasProfiles[1][2]
+#e_n2o[2] = 0.03*gasProfiles[3][2]
 
 dims = size(σ_matrix)	
 # Fill the diagonal for the trace gases (hard-coded indices, so we have to be careful here):
@@ -139,7 +140,7 @@ xa = x;
 
 # Define measurement error covariance matrix:
 errors = 1e10*ones(length(indLR));
-errors .= 0.00002
+errors .= 0.00004
 Se = Diagonal(errors.^2);
 
 
@@ -217,6 +218,10 @@ for key in sorted_keys
         K .= Kᵢ
         x_all[:,i+1] = xa + iGain * (y - Fᵢ + Kᵢ *(x_all[:,i]-xa))
         Ff .= Fᵢ
+        #println("Column averaged N₂O: ", (h_n2o' * x_all[:,i+1] * 1e6)/0.32*100)
+        #    println("Column averaged CO₂: ", (h_co2' * x_all[:,i+1] * 1e6)/400*100)
+        #    println("Column averaged 13CO₂: ", (h_co2_' * x_all[:,i+1] * 1e6)/400*100)
+        #    println("Column averaged H2O: ", (h_h2o' * x_all[:,end] * 1e6)/5313.104611587684*100)
         #@show x_all[:,i+1]*1e6
         #println("Column averaged CO₂: ", (h_co2' * x_all[:,i+1] * 1e6)/400*100)
         #println("Column averaged 13CO₂: ", (h_co2_' * x_all[:,i+1] * 1e6)/400*100)
@@ -224,6 +229,7 @@ for key in sorted_keys
             println("Column averaged N₂O: ", (h_n2o' * x_all[:,i+1] * 1e6)/0.32*100)
             println("Column averaged CO₂: ", (h_co2' * x_all[:,i+1] * 1e6)/400*100)
             println("Column averaged 13CO₂: ", (h_co2_' * x_all[:,i+1] * 1e6)/400*100)
+            println("Column averaged H2O: ", (h_h2o' * x_all[:,end] * 1e6)/5313.104611587684*100)
             @show x_all[:,i+1]*1e6
             #println("Column averaged CH₄: ", (h_ch4' * x_all[:,i+1] * 1e9)/2000*100)
             #println("Column averaged C2H6: ", (h_c2h6' * x_all[:,i+1] * 1e9)/1.0*100)
@@ -255,8 +261,8 @@ for key in sorted_keys
     push!(resi2, res)
 end
 
-n2o_mw1 = deepcopy(n2o)
-co2_mw1 = deepcopy(co2)
-co2_13_mw1 = deepcopy(co2_13)
-h2o_mw1 = deepcopy(h2o)
-@save "mw1_fits_all.jld2" n2o_mw1 co2_mw1 co2_13_mw1 h2o_mw1
+n2o_mw1_v2 = deepcopy(n2o)
+co2_mw1_v2 = deepcopy(co2)
+co2_13_mw1_v2 = deepcopy(co2_13)
+h2o_mw1_v2 = deepcopy(h2o)
+@save "mw1_fits_all_v2.jld2" n2o_mw1_v2 co2_mw1_v2 co2_13_mw1_v2 h2o_mw1_v2

@@ -25,14 +25,14 @@ end
 
 # This needs to be refined with different options, for now we assume higher error in the BL, 
 # decrease towards the UTLS and known in the strat (can later add co-variances in the N2O and CH4 strat). 
-function createErrorVector(p,p_utls,p_bl, rel_Error, vmr)
+function createErrorVector(p,p_utls,p_bl, rel_Error, vmr; bl_error=5, utls_error=0.0001)
     n_layers = length(p)
     σ = zeros(n_layers)
     for i=1:n_layers
         if p[i] > p_bl
-            σ[i] = rel_Error * 5 * vmr[i]
+            σ[i] = rel_Error * bl_error * vmr[i]
         elseif p[i] < p_utls
-            σ[i] = rel_Error * 0.0001 * vmr[i]
+            σ[i] = rel_Error * utls_error * vmr[i]
         else
             σ[i] = rel_Error * vmr[i]
         end

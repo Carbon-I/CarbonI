@@ -12,7 +12,7 @@ co2, ch4, h2o, hdo, n2o, co, co2_iso2, c2h6 = CarbonI.loadXSModels();
 indHR = 1:70000
 indLR = 1:150
 # Read non-scattering forward model
-include("src/forwardModel.jl")
+include("forwardModel.jl")
 
 # Define species in the state vector:
 hitran_array = (co2, h2o, ch4, co, n2o, hdo, co2_iso2, c2h6);

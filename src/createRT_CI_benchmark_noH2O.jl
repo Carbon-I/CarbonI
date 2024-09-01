@@ -9,7 +9,7 @@ cM, wl_ci = CarbonI.create_carbonI_conv_matrix(wl)
 R_conv_carbonI_dict = Dict{Tuple{Float64, Float64,Float64, Float64}, Vector{Float64}}()
 #R_conv_emit_dict = Dict{Tuple{Float64, Float64}, Vector{Float64}}()
 
-parameters = parameters_from_yaml("/home/cfranken/code/gitHub/CarbonI/src/yaml/carbon-i.yaml")
+parameters = parameters_from_yaml("/home/cfranken/code/gitHub/CarbonI/src/yaml/carbon-i_nowater.yaml")
 
 # Set of runs:
 aods = exp.(-8:0.2:3)
@@ -24,7 +24,7 @@ for sza in szas
         parameters.sza = sza
         model = model_from_parameters(parameters);
         aod_profile_normalized = model.τ_aer[1][1,:] / sum(model.τ_aer[1][1,:])
-
+        model.τ_rayl[1] .= 0.0
         for aod in aods
             for albedo in albedos
                 println("Iter for SZA, p_aero, albedo, aod: ")
@@ -51,6 +51,6 @@ for sza in szas
     end
 end
 
-@save "simulated_rads_all_v2.jld2" R_conv_carbonI_dict 
+@save "simulated_rads_all_noH2OnoRayleigh.jld2" R_conv_carbonI_dict 
 #  @load "simulated_rads_all.jld2" R_conv_carbonI_dict
 
