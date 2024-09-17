@@ -51,6 +51,7 @@ h2o = [  5e-6,   5e-6,   5e-6,   5e-6,   5e-61,   5e-6,
 5e-6,  5e-6,  5e-6,  5e-6,  5e-6, 5e-6,
 5e-6, 5e-6, 0.001, 0.0025, 0.005, 0.007, 
 0.01, 0.015, 0.02, 0.03]
+
 # Define prior state vector elements
 vmr_co2 = zeros(nL) .+ 400e-6
 vmr_ch4 = zeros(nL) .+ 2.0e-6

@@ -1,4 +1,3 @@
-
 using CarbonI, vSmartMOM
 using ImageFiltering, DiffResults, ForwardDiff, InstrumentOperator, Unitful, Interpolations
 using NCDatasets, Polynomials, LinearAlgebra, SpecialPolynomials
@@ -22,7 +21,6 @@ hitran_array = (co2, h2o, ch4, co, n2o, hdo, co2_iso2, c2h6);
 wl = 2031:Δwl:2385
 
 parameters = parameters_from_yaml("/home/cfranken/code/gitHub/CarbonI/src/yaml/carbon-i.yaml")
-model = model_from_parameters(parameters);
 ν = parameters.spec_bands[1];
 gridi = LinRange(ν[1], ν[end], length(ν))
 
@@ -34,7 +32,7 @@ profile_hr = CarbonI.generate_atmos_profile(parameters.T, 100*parameters.p, para
 
 # Reduce dimensions, group layers together to get roughly layers of equal pressure difference:
 n_layers = 10
-profile, σ_matrix, indis = CarbonI.reduce_profile(n_layers,profile_hr, σ_matrix_hr)
+profile, σ_matrix, indis = CarbonI.reduce_profile(n_layers, profile_hr, σ_matrix_hr)
 n_layers = length(indis)
 
 # Use a flat solar spectrum here (these are small in the 2 micron range anyhow):

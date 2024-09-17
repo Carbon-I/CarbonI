@@ -33,9 +33,21 @@ R_wl = rad_inter(1e7./wl);
 R_conv_carbonI = cM_CarbonI * R_wl
 R_conv_emit =    cM_EMIT * R_wl
 
+# Plot simulated radiances:
 plot(wl, R_wl, label="HighRes", alpha=0.2)
 plot!(wl_carbonI, R_conv_carbonI, label="Carbon-I")
 plot!(wl_emit, R_conv_emit, label="EMIT")
 
+# Plots ILS:
+plot(wl .- wl_carbonI[100], cM_CarbonI[100,:], label="Carbon-I", alpha=0.5, xlims=(-10,10))
+plot!(wl .- wl_emit[20], cM_EMIT[20,:], label="EMIT", alpha=0.5, xlims=(-10,10))
 
+plot(1e7./gridi, compute_absorption_cross_section(a[1], gridi, 1013, 298.0),alpha=0.5, label=parameters.absorption_params.molecules[1][1], yscale=:log10)
+plot!(1e7./gridi, compute_absorption_cross_section(a[2], gridi, 1013, 298.0),alpha=0.5, label=parameters.absorption_params.molecules[1][2], yscale=:log10)
+plot!(1e7./gridi, compute_absorption_cross_section(a[3], gridi, 1013, 298.0),alpha=0.5, label=parameters.absorption_params.molecules[1][3], yscale=:log10)
+plot!(1e7./gridi, compute_absorption_cross_section(a[4], gridi, 1013, 298.0),alpha=0.5, label=parameters.absorption_params.molecules[1][4], yscale=:log10)
 
+plot(1e7./gridi, compute_absorption_cross_section(a[5], gridi, 1013, 298.0),alpha=0.5, label=parameters.absorption_params.molecules[1][5], yscale=:log10)
+plot!(1e7./gridi, compute_absorption_cross_section(a[6], gridi, 1013, 298.0),alpha=0.5, label=parameters.absorption_params.molecules[1][6], yscale=:log10)
+plot!(1e7./gridi, compute_absorption_cross_section(a[7], gridi, 1013, 298.0),alpha=0.25, label=parameters.absorption_params.molecules[1][7], yscale=:log10)
+plot!(1e7./gridi, compute_absorption_cross_section(a[8], gridi, 1013, 298.0),alpha=0.5, label=parameters.absorption_params.molecules[1][8], yscale=:log10)

@@ -82,3 +82,5 @@ scatter!(albedos[ind_lowAOD], n2o_mw1[ind_lowAOD]./n2o_mw2[ind_lowAOD], label="X
 scatter!(albedos[ind_highAOD], n2o_mw1[ind_highAOD]./n2o_mw2[ind_highAOD], label="XCO₂/XN₂O; AOD = 0.18")
 xlabel!("Albedo")
 ylabel!("Retrieved/True Ratio")
+
+

@@ -129,8 +129,9 @@ end
 function forward_model_x_(𝐱::AbstractArray{FT} ;sun = solarIrr,reflectance=refl, instrument=lociBox, sza=sza, vza=0.0, profile=profile,σ_matrix=σ_matrix, wl=wl) where {FT}
     dims = size(σ_matrix)
 	# @show dims
+    #xx
     vmrs = reshape(𝐱[1:(dims[2]*dims[3])],(dims[2],dims[3]) )
-    poly = Polynomial(𝐱[dims[2]*dims[3]+1:end])
+    poly = Legendre(𝐱[dims[2]*dims[3]+1:end])
     #@show size(vmrs)
     # Air Mass Factor
     AMF = 1/cosd(sza) + 1/cosd(vza)
@@ -149,5 +150,6 @@ function forward_model_x_(𝐱::AbstractArray{FT} ;sun = solarIrr,reflectance=re
     L = cosd(sza)*T_conv/π;
     # x-axis for polynomial [-1,1], enables legendre later:
     x_poly = CarbonI.rescale_x(instrument.ν_out)
-   return L
+    @show poly.(x_poly)
+   return L .* poly.(x_poly)
 end

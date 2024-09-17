@@ -57,7 +57,7 @@ function read_atmos_profile(file::String, lat::Real, lon::Real, timeIndex; g₀=
     # Find index (nearest neighbor, one could envision interpolation in space and time!):
     iLat = argmin(abs.(lat_ .- lat))
     iLon = argmin(abs.(lon_ .- lon))
-    @show ds["T"]
+    @show ds["T"][iLon,iLat, :, timeIndex]
     # Temperature profile
     T    = convert(Array{FT,1}, ds["T"][ iLon,iLat, :, timeIndex])
     # specific humidity profile
@@ -116,7 +116,7 @@ function read_atmos_profile_MERRA2(file::String, lat::Real, lon::Real, timeIndex
     # Find index (nearest neighbor, one could envision interpolation in space and time!):
     iLat = argmin(abs.(lat_ .- lat))
     iLon = argmin(abs.(lon_ .- lon))
-    @show ds["T"]
+    @show ds["T"][iLon,iLat, :, timeIndex]
     # Temperature profile
     T    = convert(Array{FT,1}, ds["T"][ iLon,iLat, :, timeIndex])
     # specific humidity profile
@@ -190,7 +190,6 @@ function generate_atmos_profile(T,p,q; g₀=9.807)
         vcd_dry[i] = vmr_dry * Δp / (M * g₀ * 100.0^2)   # includes m2->cm2
         vcd_h2o[i] = vmr_h2o[i] * Δp / (M * g₀ * 100^2)
     end
-
     return AtmosphericProfile(FT(0.0), FT(0.0), psurf, T, q, p_full, p_half, vmr_h2o, vcd_dry, vcd_h2o)
 end;
 
@@ -348,14 +347,3 @@ function reduce_pressure_levels(pressures, n::Int)
 
     return sort(new_pressures)
 end
-
-
-
-    
-    
-    
-
-
-
-
-    
