@@ -1,7 +1,7 @@
 
 using CarbonI
 using ImageFiltering, DiffResults, ForwardDiff, InstrumentOperator, Unitful, Interpolations
-using NCDatasets, Polynomials, LinearAlgebra, SpecialPolynomials
+using NCDatasets, Polynomials, LinearAlgebra, SpecialPolynomials, DelimitedFiles
 using CairoMakie
 # Load spectroscopies:
 co2, ch4, h2o, hdo, n2o, co, co2_iso2, c2h6 = CarbonI.loadXSModels();
@@ -57,7 +57,7 @@ profile, σ_matrix, indis, gasProfiles = CarbonI.reduce_profile(n_layers, profil
 p = Polynomial([0.2,0.0001,0.000001]);
 
 # Define an instrument:
-FWHM  = 1.5  # 
+FWHM  = 1.7  # 
 SSI  = 0.7
 kern1 = CarbonI.box_kernel(2*SSI, Δwl)
 kern2 = CarbonI.gaussian_kernel(FWHM, Δwl)
@@ -78,19 +78,19 @@ result = DiffResults.JacobianResult(zeros(length(lociBox.ν_out)),x);
 
 
 # Define the instrument specs:
-ET  = 40.0u"ms"         # Exposure time
+ET  = 57.0u"ms"         # Exposure time
 SSI = (2*0.7)u"nm"      # Spectral resolution
 Pitch = 18.0u"μm"       # Pixel pitch
-FPA_QE = 0.65           # FPA quantum efficiency
+FPA_QE = 0.85           # FPA quantum efficiency
 Bench_efficiency = 0.65 # Bench efficiency
-Fnumber = 2.2           # F-number
+Fnumber = 2.0           # F-number
 readout_noise = 70.0    # Readout noise
-dark_current = 100.0u"1/s" # Dark current
+dark_current = 10e3u"1/s" # Dark current
 
 ins = InstrumentOperator.createGratingNoiseModel(ET, Pitch,FPA_QE, Bench_efficiency, Fnumber, SSI, (readout_noise), dark_current);
-
-soil = CubicSplineInterpolation(450:2500,r[:,156], extrapolation_bc=Interpolations.Flat());
-
+clima_alb = readdlm("data/albedo.csv",',', skipstart=1)
+#soil = CubicSplineInterpolation(450:2500,r[:,140], extrapolation_bc=Interpolations.Flat());
+soil = CubicSplineInterpolation(300:2400,clima_alb[:,2]/1.16, extrapolation_bc=Interpolations.Flat());
 solarIrr = sol(wl);
 refl   = soil(wl);
 
@@ -104,7 +104,7 @@ e = InstrumentOperator.photons_at_fpa(ins, (lociBox.ν_out)u"nm", (L_conv)u"mW/m
 # Get prior covariance matrix:
 n_state = length(x);
 Sₐ = zeros(n_state,n_state);
-rel_error = 0.01;
+rel_error = 0.0001;
 # vcd_ratio = profile_caltech.vcd_dry ./ mean(profile_caltech.vcd_dry)
 	
 # Fill the diagonal for the trace gases:
@@ -149,7 +149,7 @@ h_c2h6[71:80] .= ratio;
 
 sza = 30
 alb = 0.1
-refl = soil(wl)*0.6; #alb.+0.0*soil(wl)
+refl = soil(wl)#*0.6; #alb.+0.0*soil(wl)
 ForwardDiff.jacobian!(result, forward_model_x_, x);
 K = DiffResults.jacobian(result);
 F = DiffResults.value(result);
@@ -163,10 +163,21 @@ F = DiffResults.value(result);
 #    K[:,80+ii] .= p.(ranger)
 #end
     
-    
+# Define the instrument specs:
+ET  = 57.0u"ms"         # Exposure time
+SSI = (2*0.7)u"nm"      # Spectral resolution
+Pitch = 18.0u"μm"       # Pixel pitch
+FPA_QE = 0.85           # FPA quantum efficiency
+Bench_efficiency = 0.65 # Bench efficiency
+Fnumber = 2.2           # F-number
+readout_noise = 100.0    # Readout noise
+dark_current = 10e3u"1/s" # Dark current
+
+ins = InstrumentOperator.createGratingNoiseModel(ET, Pitch,FPA_QE, Bench_efficiency, Fnumber, SSI, (readout_noise), dark_current);    
 nesr = InstrumentOperator.noise_equivalent_radiance(ins, (lociBox.ν_out)u"nm", (F)u"mW/m^2/nm/sr");
 nesr_ = nesr./1u"mW/m^2/nm/sr"
 e = InstrumentOperator.photons_at_fpa(ins, (lociBox.ν_out)u"nm", (F)u"mW/m^2/nm/sr");
+photon_flux =  F/1000 .* lociBox.ν_out * 1e-9/ (6.626e-34 * 2.998e8) 
 Se = Diagonal(nesr_.^2);
 G = inv(K'inv(Se)K + inv(Sₐ))K'inv(Se);
 # Posterior covariance matrix:
@@ -184,7 +195,20 @@ c2h6_error = sqrt(h_c2h6' * Ŝ * h_c2h6)*1e9
 @show ch4_error/sqrt(10)
 @show co2_error/sqrt(10)
 @show n2o_error/sqrt(10)
- 
+
+@show n2o_error/sqrt(12)
+
+fig = Figure(resolution=(650,500))
+# Create an axis with a logarithmic y-scale
+ax = Axis(fig[1, 1], xlabel="Wavelength (nm)",ylabel="Solar Photon Flux (photons/s/m²/nm)", title = "Solar radiation")
+lines!(ax, wl, sol.(wl)/1000 .* wl * 1e-9/ (6.626e-34 * 2.998e8) , alpha=0.3, label="Solar Irradiance")
+lines!(ax, lociBox.ν_out, CarbonI.conv_spectra(lociBox, wl, sol.(wl)/1000 .* wl) * 1e-9/ (6.626e-34 * 2.998e8) , label="Solar Irradiance at Carbon-I resolution")
+axislegend(ax, position=:rt)
+xlims!(2035, 2385)
+# Display the plot
+fig
+save("plots/Carbon-I_solar.pdf", fig)
+
 ch4_error_SAA = []
 co2_error_SAA = []
 n2o_error_SAA = []

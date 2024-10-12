@@ -49,6 +49,8 @@ sorted_keys = sort(collect(keys(R_conv_carbonI_dict)));
 paods = [a[2] for a in sorted_keys];
 szas = [a[1] for a in sorted_keys];
 
+albedos = convert.(Float64, albedos)
+
 ind_lowlowAOD = findall(paods .== 850 .&& szas .==40 .&& 0.007 .< aods .< 0.01 .&& albedos .> 0.035 )
 ind_lowAOD = findall(paods .== 850 .&& szas .==40 .&& 0.04 .< aods .< 0.06 .&& albedos .> 0.035 )
 ind_highAOD = findall(paods .== 850 .&& szas .==40 .&& 0.16 .< aods .< 0.2 .&& albedos .> 0.035) 
@@ -83,4 +85,9 @@ scatter!(albedos[ind_highAOD], n2o_mw1[ind_highAOD]./n2o_mw2[ind_highAOD], label
 xlabel!("Albedo")
 ylabel!("Retrieved/True Ratio")
 
+
+n2o_mw1_ = convert.(Float64,n2o_mw1);
+co2_mw1_ = convert.(Float64,co2_mw1);
+ch4_mw2_ = convert.(Float64,ch4_mw2);
+n2o_mw2_ = convert.(Float64,n2o_mw2);
 

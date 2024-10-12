@@ -150,6 +150,6 @@ function forward_model_x_(𝐱::AbstractArray{FT} ;sun = solarIrr,reflectance=re
     L = cosd(sza)*T_conv/π;
     # x-axis for polynomial [-1,1], enables legendre later:
     x_poly = CarbonI.rescale_x(instrument.ν_out)
-    @show poly.(x_poly)
+    #@show poly.(x_poly)
    return L .* poly.(x_poly)
 end

@@ -4,6 +4,14 @@ using JLD2, CairoMakie
 szas = 20.0:20:60.0
 p_aeros = 750.0:100:950.0
 
+albedos = convert.(Float64, albedos)
+n2o_mw1 = convert.(Float64,n2o_mw1);
+h2o_mw1 = convert.(Float64,h2o_mw1);
+co2_mw1 = convert.(Float64,co2_mw1);
+ch4_mw2 = convert.(Float64,ch4_mw2);
+n2o_mw2 = convert.(Float64,n2o_mw2);
+
+
 size(szas,1) * size(unique(albedos),1) * size(p_aeros,1) * size(unique(aods),1)
 alb_ = reshape(albedos,(size(szas,1), size(p_aeros,1), size(unique(aods),1),size(unique(albedos),1)))
 sorted_keys = sort(collect(keys(R_conv_carbonI_dict)));
@@ -77,6 +85,78 @@ save("plots/n2o_proxy_ratio.pdf", fig)
 
 fig
 
+fig = Figure()
+ax = Axis(fig[1, 1], title = "Retrieved/True Trace Gas Ratio",
+xlabel = "Albedo", ylabel = "Retrieved/True Ratio", yautolimitmargin = (0.05, 0.15))
+# Plot XN₂O lines
+line1 = lines!(ax, albedos[ind_lowlowAOD], 1.002*ch4_mw2[ind_lowlowAOD]./n2o_mw2[ind_lowlowAOD], label = "Proxy XCH₄; AOD = 0.01")
+line2 = lines!(ax, albedos[ind_lowAOD],  1.002*ch4_mw2[ind_lowAOD]./n2o_mw2[ind_lowAOD], label = "Proxy XCH₄; AOD = 0.04")
+line3 = lines!(ax, albedos[ind_highAOD], 1.002*ch4_mw2[ind_highAOD]./n2o_mw2[ind_highAOD], label = "Proxy XCH₄; AOD = 0.18")
+
+# Plot CH₄ lines with the same colors as XN₂O but dashed
+lines!(ax, albedos[ind_lowlowAOD], ch4_mw2[ind_lowlowAOD], label = "Non-scattering XCH₄; AOD = 0.01", color = line1[:color], linestyle = :dash)
+lines!(ax, albedos[ind_lowAOD],    ch4_mw2[ind_lowAOD], label = "Non-scattering XCH₄; AOD = 0.04", color = line2[:color], linestyle = :dash)
+lines!(ax, albedos[ind_highAOD],   ch4_mw2[ind_highAOD], label = "Non-scattering XCH₄; AOD = 0.18", color = line3[:color], linestyle = :dash)
+xlims!(0.03, 0.6)
+ylims!(0.96, 1.04)
+axislegend(ax, position = :rb)  # `position = :rb` places the legend at the right bottom
+save("plots/ch4_proxy_example.pdf", fig)
+# Add the legend
+
+fig
+
+fig = Figure()
+ax = Axis(fig[1, 1], title = "Retrieval Simulation Ensemble",
+xlabel = "Retrieved/True Ratio", ylabel = "Frequency", yautolimitmargin = (0.05, 0.15))
+# Plot XN₂O lines
+
+hist2 = hist!(ax, ch4_mw2[:], label = "Non-scattering XCH₄", bins=50)
+hist1 = hist!(ax, 1.002*ch4_mw2[:]./n2o_mw2[:], label = "Proxy XCH₄", bins=50)
+
+axislegend(ax, position = :lt)  # `position = :rb` places the legend at the right bottom
+save("plots/ch4_proxy_example_histogram.pdf", fig)
+# Add the legend
+
+fig
+
+fig = Figure()
+ax = Axis(fig[1, 1], title = "Retrieval Simulation Ensemble",
+xlabel = "Retrieved/True Ratio", ylabel = "Frequency", yautolimitmargin = (0.05, 0.15))
+# Plot XN₂O lines
+
+hist2 = hist!(ax, co2_mw1[:], label = "Non-scattering XCO₂", bins=50)
+hist1 = hist!(ax, 1.002*co2_mw1[:]./n2o_mw1[:], label = "Proxy XCO₂", bins=50)
+
+axislegend(ax, position = :lt)  # `position = :rb` places the legend at the right bottom
+save("plots/co2_proxy_example_histogram.pdf", fig)
+# Add the legend
+
+fig
+
+fig = Figure()
+ax = Axis(fig[1, 1], title = "Retrieved/True Trace Gas Ratio",
+xlabel = "Albedo", ylabel = "Retrieved/True Ratio", yautolimitmargin = (0.05, 0.15))
+# Plot XN₂O lines
+line1 = lines!(ax, albedos[ind_lowlowAOD], n2o_mw2[ind_lowlowAOD], label = "XN₂O w2; AOD = 0.01")
+line2 = lines!(ax, albedos[ind_lowAOD], n2o_mw2[ind_lowAOD], label = "XN₂O w2; AOD = 0.04")
+line3 = lines!(ax, albedos[ind_highAOD], n2o_mw2[ind_highAOD], label = "XN₂O w1; AOD = 0.18")
+
+# Plot CH₄ lines with the same colors as XN₂O but dashed
+lines!(ax, albedos[ind_lowlowAOD], n2o_mw1[ind_lowlowAOD], label = "XN2O w1; AOD = 0.01", color = line1[:color], linestyle = :dash)
+lines!(ax, albedos[ind_lowAOD], n2o_mw1[ind_lowAOD], label = "XN2O w1; AOD = 0.04", color = line2[:color], linestyle = :dash)
+lines!(ax, albedos[ind_highAOD], n2o_mw1[ind_highAOD], label = "XN2O w1; AOD = 0.18", color = line3[:color], linestyle = :dash)
+
+lines!(ax, albedos[ind_lowlowAOD], co2_mw1[ind_lowlowAOD], label = "XCO2 w1; AOD = 0.01", color = line1[:color], linestyle = :dot)
+lines!(ax, albedos[ind_lowAOD], co2_mw1[ind_lowAOD], label = "XCO2 w1; AOD = 0.04", color = line2[:color], linestyle = :dot)
+lines!(ax, albedos[ind_highAOD], co2_mw1[ind_highAOD], label = "XCO2 w1; AOD = 0.18", color = line3[:color], linestyle = :dot)
+
+xlims!(0.03, 0.6)
+ylims!(0.96, 1.04)
+axislegend(ax, position = :lt, labelsize=9)  # `position = :rb` places the legend at the right bottom
+save("plots/n2o_co2_mw1_lowlowAOD_1.pdf", fig)
+# Add the legend
+
+fig
 
 using CairoMakie, NCDatasets, Polynomials
 
