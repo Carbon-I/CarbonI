@@ -306,6 +306,60 @@ function reduce_profile(n::Int, profile::AtmosphericProfile{FT}, σ_matrix, gasP
     return AtmosphericProfile(lat, lon, psurf, T, q, p_full, p_levels, vmr_h2o, vcd_dry, vcd_h2o), σ_matrix_lr, indis, gasProfile_low_res
 end;
 
+"Reduce profile dimensions"
+function reduce_profile_vcd(n::Int, profile::AtmosphericProfile{FT}, σ_matrix, gasProfiles) where {FT}
+    @assert n < length(profile.T)
+    @unpack lat, lon, psurf = profile
+    # New rough half levels (boundary points)
+    #a = range(0, maximum(profile.p_levels), length=n + 1)
+    a = reduce_pressure_levels(profile.p_levels, n+1)
+    n = length(a)-1
+    dims = size(σ_matrix)
+    #FT = eltype(σ_matrix)
+    σ_matrix_lr = zeros(FT, dims[1], n, dims[3])
+    T = zeros(FT, n);
+    q = zeros(FT, n);
+    p_full = zeros(FT, n);
+    p_levels = zeros(FT, n + 1);
+    vmr_h2o  = zeros(FT, n);
+    vcd_dry  = zeros(FT, n);
+    vcd_h2o  = zeros(FT, n);
+    indis = []
+    gasProfile_low_res = [zeros(n) for i in 1:length(gasProfiles)]
+    for i = 1:n
+        ind = findall(a[i] .< profile.p .<= a[i + 1]);
+        push!(indis,ind)
+        #@show ind
+        h = profile.vcd_dry[ind]
+        h ./= sum(h)
+        # This has to be weighted by vcd_dry!
+        for iGas=1:dims[3]
+            @show iGas, ind
+            #@show size(gasProfiles[iGas])
+            # Weigh by gas VCD high res profile:
+            gasP = gasProfiles[iGas][ind] .* profile.vcd_dry[ind]
+            gas_vmr = sum(gasP)/sum(profile.vcd_dry[ind])
+            gasProfile_low_res[iGas][i] = sum(gasP)
+            gasP ./= sum(gasP)
+            @show gas_vmr, mean(gasProfiles[iGas][ind])
+
+            # Weighted average of cross section:
+            σ_matrix_lr[:,i,iGas] = σ_matrix[:,ind,iGas] *gasP
+            #@show sum(gasP)
+        end
+        p_levels[i] = a[i]
+        p_levels[i + 1] = a[i+1]
+        p_full[i] = mean(profile.p[ind])
+        T[i] = profile.T[ind]' * h
+        q[i] = profile.q[ind]' * h
+        vmr_h2o[i] = profile.vmr_h2o[ind]' * h
+        vcd_dry[i] = sum(profile.vcd_dry[ind])
+        vcd_h2o[i] = sum(profile.vcd_h2o[ind])
+    end
+
+    return AtmosphericProfile(lat, lon, psurf, T, q, p_full, p_levels, vmr_h2o, vcd_dry, vcd_h2o), σ_matrix_lr, indis, gasProfile_low_res
+end;
+
 function reduce_pressure_levels(pressures, n::Int)
     # Ensure the input pressures are sorted
     sorted_pressures = sort(pressures)

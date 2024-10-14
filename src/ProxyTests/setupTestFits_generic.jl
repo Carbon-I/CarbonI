@@ -7,7 +7,7 @@ struct FitParams{FT}
     "Low Resolution Indices (for the measurements)"
     indLR::Array{Int,1}
     "Instrument wavelength Arrays"
-    instrument::Array{FT,1}
+    wl_ci::Array{FT,1}
     "Convolution Matrix"
     cM::Matrix{FT}
     "Solar Zenith Angle"
@@ -20,11 +20,33 @@ struct FitParams{FT}
     σ_matrix::Array{Float64,3}
     "Gas Profiles"
     gasProfiles::Array{Array{FT,1},1}
+    "Atmospheric Profile"
+    profile::CarbonI.AtmosphericProfile{FT}
 end
 
-gas_array = ["co2", "ch4", "n2o"];
+# Example Gas Array (we merge CO2_13 and CO2 now) ########################
+gas_array = ["co2", "ch4", "n2o", "h2o","hdo"];
+gas_array = ["ch4", "co2", "n2o", "h2o", "co", "hdo", "c2h6"];
+gas_array = ["ch4", "co2", "n2o",  "co",  "c2h6"];
+gas_array = ["ch4", "n2o", "h2o", "co", "hdo", "c2h6"];
+setupFile = "/home/cfranken/code/gitHub/CarbonI/src/yaml/carbon-i.yaml"
+n_layers = 3
+indLR = 10:180
+indLR = 287:410
+indLR = 7:410
+cls        = Dict(gas => 5500.0 for gas in gas_array)
+cls["h2o"] = 50.0
+cls["hdo"] = 50.0
+rel_errors = Dict(gas => 0.01 for gas in gas_array)
+rel_errors["h2o"] = 0.1
+rel_errors["hdo"] = 0.2
+rel_errors["n2o"] = 1e3
+pbl_error = 1e3
+# a = createFitParams(indLR, setupFile, n_layers, gas_array)
+# x, Sa, h_column = createBayesianConstraints(gas_array, a.gasProfiles,5, a.profile, 150.0, 900.0, cls, rel_errors)
+############################################################################
 
-
+# Need to add options to split profile into strat, free trop and boundary layer
 function createFitParams(indLR, setupFile, n_layers, gas_array)
     # Define the dictionary
     name_to_index = Dict(
@@ -37,7 +59,6 @@ function createFitParams(indLR, setupFile, n_layers, gas_array)
         "co2_13" => 8,
         "c2h6" => 7
     )
-
     index_array = [name_to_index[name] for name in gas_array]
 
     # Load spectroscopies:
@@ -50,8 +71,8 @@ function createFitParams(indLR, setupFile, n_layers, gas_array)
     cM, wl_ci = CarbonI.create_carbonI_conv_matrix(wl)
 
     # Spectral database is in reverse oder (wavenumber)
-    indHR = findall(wl_ci[indLR[1]]-5 .< reverse(wl) .< wl_ci[indLR[end]]+5)
-    indHR2 = findall(wl_ci[indLR[1]]-5 .< wl .< wl_ci[indLR[end]]+5)
+    indHR  = findall(wl_ci[indLR[1]]-5 .< reverse(wl) .< wl_ci[indLR[end]]+5)
+    indHR2 = findall(wl_ci[indLR[1]]-5 .< wl          .< wl_ci[indLR[end]]+5)
 
     # Define species in the state vector:
     hitran_array = (co2, ch4, h2o, hdo, n2o, co, co2_iso2, c2h6);
@@ -69,203 +90,190 @@ function createFitParams(indLR, setupFile, n_layers, gas_array)
     # Number of layers:
     nL = length(profile_hr.T)
     vmr_h2o = parameters.absorption_params.vmr["H2O"]
-    # Define prior state vector elements
-    vmr_co2 = zeros(nL) .+ parameters.absorption_params.vmr["CO2"] 
-    vmr_ch4 = zeros(nL) .+ parameters.absorption_params.vmr["CH4"]
-    vmr_co  = zeros(nL) .+ parameters.absorption_params.vmr["CO"]
-    vmr_n2o = zeros(nL) .+ parameters.absorption_params.vmr["N2O"]
-    vmr_hdo = parameters.absorption_params.vmr["HDO"]
-    vmr_co2_13 = zeros(nL) .+ .+ parameters.absorption_params.vmr["CO2_13"]
-    vmr_c2h6 = zeros(nL) .+ parameters.absorption_params.vmr["C2H6"]
+    
+    # Define prior state vector elements (can be adapted later):
+    vmr_co2 = zeros(nL)    .+ parameters.absorption_params.vmr["CO2"] 
+    vmr_ch4 = zeros(nL)    .+ parameters.absorption_params.vmr["CH4"]
+    vmr_co  = zeros(nL)    .+ parameters.absorption_params.vmr["CO"]
+    vmr_n2o = zeros(nL)    .+ parameters.absorption_params.vmr["N2O"]
+    vmr_hdo = zeros(nL)    .+ parameters.absorption_params.vmr["HDO"]
+    vmr_co2_13 = zeros(nL) .+ parameters.absorption_params.vmr["CO2_13"]
+    vmr_c2h6 = zeros(nL)   .+ parameters.absorption_params.vmr["C2H6"]
 
     # Reduce dimensions, group layers together to get roughly layers of equal pressure difference:
-    profile, σ_matrix, indis, gasProfiles = CarbonI.reduce_profile(n_layers,profile_hr, σ_matrix_hr,[vmr_co2, vmr_ch4, vmr_h2o, vmr_hdo, vmr_n2o, vmr_co,  vmr_c2h6,vmr_co2_13])
+    profile, σ_matrix, indis, gasProfiles = CarbonI.reduce_profile_vcd(n_layers,profile_hr, σ_matrix_hr,[vmr_co2, vmr_ch4, vmr_h2o, vmr_hdo, vmr_n2o, vmr_co,  vmr_c2h6,vmr_co2_13])
     # Merge CO2 and CO2_13:
     σ_matrix[:,:,1] += σ_matrix[:,:,8]
     n_layers = length(indis)
 
-    return FitParams(indHR, indHR2, collect(indLR), wl_ci, cM, parameters.sza, 0.0, profile.vcd_dry, σ_matrix[:,:,index_array], gasProfiles[index_array])
+    # Convert cross sections from cm2/molec to m2/mol
+    cf = 6.02214076e23/1e4
+    return FitParams(indHR, indHR2, collect(indLR), wl_ci, cM, parameters.sza, 0.0, profile.vcd_dry, cf.*σ_matrix[:,:,index_array], gasProfiles[index_array]./cf, profile)
 end
 
-# Define a polynomial scaling for the surface polynomial
-p = Legendre([2.0,0.000001,0.00000001]);
+function createBayesianConstraints(gas_array, gasProfiles, n_poly,profile, p_strat, p_pbl, correlationLengths, rel_errors, pbl_error)
+    n_layers_ = [length(i) for i in gasProfiles];
+    n_layers = n_layers_[1] # For now, should enable flexible grid for other gases 
+    # Get pressure in hPa from profile
+    p = profile.p/1e2;
+    # Define a polynomial scaling for the surface polynomial 
+    poly = Legendre([1; eps().*ones(n_poly-1)]);
+    # Define our state vector (concatenate the gas profiles and polynomial terms):
+    x = [reduce(vcat,gasProfiles);poly[:]]
+    # Length of the state vector
+    n_state = length(x);
 
-# Define our state vector (concatenate the gas profiles and polynomial terms):
-x = [reduce(vcat,gasProfiles);p[:]]
-
-# Get SZA from Parameter file:
-sza = parameters.sza
-
-# Get prior covariance matrix:
-n_state = length(x);
-Sₐ = zeros(n_state,n_state);
-
-rel_error = 0.25;
-correlationMatrix = CarbonI.createCorrelationMatrix(profile.p/1e2,0.0,1550)
-correlationMatrix_h2o = CarbonI.createCorrelationMatrix(profile.p/1e2,0.0,550)
-
-# Create Diagonal errors for the trace gases:
-utls = 250.0
-bl   = 850.0
-e_ch4  = CarbonI.createErrorVector(profile.p/1e2,utls,bl, rel_error, vmr_ch4)
-e_co2  = CarbonI.createErrorVector(profile.p/1e2,utls,bl, rel_error, gasProfiles[1])
-#e_co2[end] = vmr_co2[end]*20
-e_h2o  = CarbonI.createErrorVector(profile.p/1e2,utls,bl, 2*rel_error, gasProfiles[2])
-e_n2o  = CarbonI.createErrorVector(profile.p/1e2,utls,bl, rel_error, gasProfiles[3])
-e_co   = CarbonI.createErrorVector(profile.p/1e2,utls,bl, rel_error, vmr_co)
-e_hdo  = CarbonI.createErrorVector(profile.p/1e2,utls,bl, 2*rel_error, gasProfiles[4])
-e_c2h6 = CarbonI.createErrorVector(profile.p/1e2,utls,bl, rel_error, vmr_c2h6)
-
-# Set center to 0 for Co2 and N2O:
-e_co2[2] = 0.001*gasProfiles[1][2]
-e_n2o[2] = 0.001*gasProfiles[3][2]
-
-dims = size(σ_matrix)	
-# Fill the diagonal for the trace gases (hard-coded indices, so we have to be careful here):
-e_coll = (e_co2, e_h2o, e_n2o, e_hdo, e_co2,e_ch4)
-iGas = length(e_coll)
-index = 1
-# Still needs to be smarter for H2O!
-for i=1:n_layers:n_layers*iGas
-    #@show i,i+n_layers
-    if i==n_layers+1
-        Sₐ[i:i+n_layers-1,i:i+n_layers-1] .= CarbonI.createPriorCovarianceMatrix(e_coll[index], correlationMatrix_h2o)
-    else
-        Sₐ[i:i+n_layers-1,i:i+n_layers-1] .= CarbonI.createPriorCovarianceMatrix(e_coll[index], correlationMatrix)
+    # Create column averaging operators for each gas (need to adapt so that each gas can have a different n_layers):
+    h_column = Dict(gas => zeros(n_state) for gas in gas_array)
+    for (i,gas) in enumerate(gas_array)
+        h_column[gas][(i-1)*n_layers+1:i*n_layers] .= 1.0;
     end
-    index += 1
-end
-
-
-# Put in arbitrarily high numbers for the polynomial term, so these won't be constrained at all! 
-
-for i=iGas*n_layers+1:n_state
-	Sₐ[i,i] = 1e5;
-end
-
-# Set the prior state vector:
-xa = x;
-
-# Define measurement error covariance matrix:
-errors = 1e10*ones(length(indLR));
-errors .= 0.00002
-Se = Diagonal(errors.^2);
-
-
-# Start defining column averaging kernels:
-h_co2 = zeros(length(x));
-h_co2_ = zeros(length(x));
-h_ch4 = zeros(length(x));
-h_h2o = zeros(length(x));
-h_co  = zeros(length(x));
-h_hdo = zeros(length(x));
-h_n2o = zeros(length(x));
-h_c2h6 = zeros(length(x));
-ratio = profile.vcd_dry/sum(profile.vcd_dry);
-h_co2[1:n_layers] .= ratio;
-h_h2o[1n_layers+1:2n_layers] .= ratio;
-h_n2o[2n_layers+1:3n_layers] .= ratio;
-h_hdo[3n_layers+1:4n_layers] .= ratio;
-h_co2_[4n_layers+1:5n_layers] .= ratio;
-#h_c2h6[5n_layers+1:6n_layers] .= ratio;
-
-N = length(indLR)
-
-
-n_state = length(x);
-
-# Define the state vector for each iteration:
-max_no_of_iter = 4
-x_all   = zeros((length(x),max_no_of_iter+1))
-F_all   = zeros((N,max_no_of_iter))
-K = zeros(N,n_state)
-A = zeros(n_state,n_state)
-result = DiffResults.JacobianResult(zeros(N),x);
-
-x_all[:,1]=x
-n2o = []
-co2 = []
-co2_13 = []
-ch4 = []
-h2o = []
-resi = []
-resi2 = []
-ys = []
-Fs = []
-aods = []
-albedos = []
-
-sorted_keys = sort(collect(keys(R_conv_carbonI_dict)));
-
-#for i=1:200
-for key in sorted_keys
-    @show key
-    sza = key[1]
-    y = R_conv_carbonI_dict[key][indLR];# + 0.0002*randn(N)
-    @show size(y)
-
-    # Figure out this index numerically in the future:
+    correlationMatrices = [CarbonI.createCorrelationMatrix(p,p_strat,correlationLengths[gas]) for gas in gas_array];
+    errorVectors        = [CarbonI.createErrorVector(p,p_strat,p_pbl, rel_errors[gas], gasProfiles[i]; bl_error=pbl_error) for (i,gas) in enumerate(gas_array)];
     
-    push!(ys,y)
-    push!(aods,key[3])
-    push!(albedos,key[4])
-
-    res = similar(y)
-    Ff = similar(y)
-    x[iGas*n_layers+1] = maximum(y)
-    x_all[:,1]=x
-    for i=1:max_no_of_iter
-        #@show i
-        #print('Iteration #',i)
-        ForwardDiff.jacobian!(result, forward_model_sat_x2, x_all[:,i]);
-        Kᵢ = DiffResults.jacobian(result);
-        Fᵢ = DiffResults.value(result);
-        iGain = inv(Kᵢ'inv(Se)Kᵢ + inv(Sₐ))Kᵢ'inv(Se);
-        A.=  iGain*Kᵢ
-        A.=  iGain*Kᵢ
-        K .= Kᵢ
-        x_all[:,i+1] = xa + iGain * (y - Fᵢ + Kᵢ *(x_all[:,i]-xa))
-        Ff .= Fᵢ
-        #@show x_all[:,i+1]*1e6
-        #println("Column averaged CO₂: ", (h_co2' * x_all[:,i+1] * 1e6)/400*100)
-        #println("Column averaged 13CO₂: ", (h_co2_' * x_all[:,i+1] * 1e6)/400*100)
-        if i==max_no_of_iter
-            println("Column averaged N₂O: ", (h_n2o' * x_all[:,i+1] * 1e6)/0.32*100)
-            println("Column averaged CO₂: ", (h_co2' * x_all[:,i+1] * 1e6)/400*100)
-            println("Column averaged 13CO₂: ", (h_co2_' * x_all[:,i+1] * 1e6)/400*100)
-            @show x_all[:,i+1]*1e6
-            #println("Column averaged CH₄: ", (h_ch4' * x_all[:,i+1] * 1e9)/2000*100)
-            #println("Column averaged C2H6: ", (h_c2h6' * x_all[:,i+1] * 1e9)/1.0*100)
-            #println("Column averaged H2O: ", (h_h2o' * x_all[:,i+1] * 1e6)/5313.10461*100)
-            #println("Column averaged CO: ", (h_co' * x_all[:,i+1] * 1e6)/0.1*100)
-            
-            #@show x_all[41:50,i+1]
-            res .= y-Fᵢ
-            
-            
-            @show maximum(abs.(res))
-        end
-
-        #@show 1e6*x_all[1:9,i+1]
-        #@show 1e9*x_all[4n_layers+1:5n_layers,i+1]
-        #@show x_all[8n_layers+1:n_state,i+1]
-        #@show res[ind]' * res[ind]
-        #@show h_co2'*x_all[:,end,end]*1e6
-        F_all[:,i] = Fᵢ
+    # Define prior covariance matrix:
+    Sa = zeros(n_state,n_state);
+    for (i,gas) in enumerate(gas_array)
+        Sa[(i-1)*n_layers+1:i*n_layers,(i-1)*n_layers+1:i*n_layers] .= CarbonI.createPriorCovarianceMatrix(errorVectors[i], correlationMatrices[i]);
     end
-    push!(Fs, Ff)
-    push!(n2o,(h_n2o' * x_all[:,end] * 1e6)/0.32)
-    push!(co2,(h_co2' * x_all[:,end] * 1e6)/400)
-    push!(co2_13, (h_co2_' * x_all[:,end] * 1e6)/400)
-    #push!(ch4,(h_ch4' * x_all[:,end] * 1e9)/2000)
-    push!(h2o,(h_h2o' * x_all[:,end] * 1e6)/5313.104611587684)
-    #push!(co2_13, (h_co2_' * x_all[:,end] * 1e6)/400)
-    push!(resi, sqrt(res' * res))
-    push!(resi2, res)
+    # Put in arbitrarily high numbers for the polynomial term, so these won't be constrained at all:
+    for i=length(gas_array)*n_layers+1:n_state
+        Sa[i,i] = 1e5;
+    end
+    #Sa[n_layers*length(gas_array)+1:n_state,n_layers*length(gas_array)+1:n_state] .= 1e5;
+
+    return x, Sa, h_column
 end
 
-n2o_mw1 = deepcopy(n2o)
-co2_mw1 = deepcopy(co2)
-co2_13_mw1 = deepcopy(co2_13)
-h2o_mw1 = deepcopy(h2o)
-@save "mw1_fits_all_v2.jld2" n2o_mw1 co2_mw1 co2_13_mw1 h2o_mw1 resi resi2
+# Define the outer function
+function define_forward_model(FParams::FitParams{FT}) where {FT}
+    (;indHR,indHR2,indLR, wl_ci, cM, sza, vza,σ_matrix ) = FParams
+    cM2 = cM[indLR,indHR2]
+    wl = wl_ci[indLR]
+    σ_matrix_ = σ_matrix[indHR,:,:]
+    # x-axis for polynomial [-1,1], enables legendre later:
+    @views x_poly = CarbonI.rescale_x(wl)
+    # Total sum of τ
+    
+    dims = size(σ_matrix_)
+    # Define the inner function
+    function F(x::AbstractArray{FT2}) where{FT2}
+        dims = size(σ_matrix)
+        vcds = reshape(x[1:(dims[2]*dims[3])],(dims[2],dims[3]) )
+        poly = Legendre(x[dims[2]*dims[3]+1:end])
+    
+        # Air Mass Factor
+        AMF = 1/cosd(sza) + 1/cosd(vza);
+        # Array for the total sum of τ (adapted to the state vector type)
+        ∑τ = zeros(FT2,length(indHR))
+        
+        for i=1:size(vcds,2)
+            for j=1:dims[2]
+                ∑τ .+= view(σ_matrix_,:,j,i) * vcds[j,i] 
+            end
+        end
+        # Transmission without Tsolar
+        @views T = reverse(exp.(-AMF * ∑τ))
+        
+        @views T_conv = cM2 * T
+        
+        #x_poly = CarbonI.rescale_x(wl)
+        return T_conv .* poly.(x_poly)
+    end
+
+    return F
+end
+
+
+# Define the outer function
+function define_inverse_model(F, xa, Sa, Se, n, max_iter,iP ) where {FT}
+    result = DiffResults.JacobianResult(zeros(n),xa);
+    x_all = zeros(length(xa),max_iter+1)
+    K = zeros(n,length(xa));
+    # Define the inverse system
+    function invert(y::AbstractArray{FT2}) where{FT2}
+        # Start at prior (just adjust for first polynomial term)
+        x_all[:,1] = xa
+        x_all[iP,1] = maximum(iP)
+        # Start iterations:
+        for i=1:max_iter
+            ForwardDiff.jacobian!(result, F, x_all[:,i]);
+            K .= DiffResults.jacobian(result);
+            Fᵢ = DiffResults.value(result);
+            iGain = inv(K'inv(Se)K + inv(Sa))K'inv(Se);
+            x_all[:,i+1] = xa + iGain * (y - Fᵢ + K *(x_all[:,i]-xa));
+        end
+        # Posterior covariance matrix:
+        Ŝ = inv(K'inv(Se)K + inv(Sa));
+        A = (inv(K'inv(Se)K + inv(Sa))K'inv(Se))*K;
+        y_mod = F(x_all[:,end]);
+        return x_all[:,end], y_mod, Ŝ, A, K
+    end
+
+    return invert
+end
+
+#=
+n_poly = 4
+a = createFitParams(indLR, setupFile, n_layers, gas_array)
+xa, Sa, h_column = createBayesianConstraints(gas_array, a.gasProfiles,n_poly, a.profile, 150.0, 800.0, cls, rel_errors, pbl_error)
+ff = define_forward_model(a)
+errors = 1e10*ones(length(indLR));
+errors .= 0.0003
+Se = Diagonal(errors.^2);
+#Sa[15,15] = 100^2
+iP = length(xa)-n_poly+1
+ii = define_inverse_model(ff,xa,Sa,Se,length(indLR),4,iP);
+
+
+co2_error = []
+for i=1:100
+    @show i
+    y = ff(x) + randn(length(indLR))*0.0015;
+    x, yy, S = ii(y);
+    append!(co2_error, h_column["co2"]' * x̂)
+end
+
+# Ratio of the error to the true value
+t_co2 = (h_column["co2"]' * x) / (h_column["co2"]' * xa)
+t_n2o = (h_column["n2o"]' * x) / (h_column["n2o"]' * xa)
+@show (h_column["co2"]' * x) / (h_column["co2"]' * xa)
+@show (h_column["n2o"]' * x) / (h_column["n2o"]' * xa)
+@show (h_column["h2o"]' * x) / (h_column["h2o"]' * xa)
+@show (h_column["ch4"]' * x) / (h_column["ch4"]' * xa)
+
+co2_error = []
+ch4_error = []
+n2o_error = []
+albs = []
+for key in sorted_keys
+#for i=2620:2632
+    #key = sorted_keys[i]
+    @show key
+    y = R_conv_carbonI_dict[key][indLR];
+    x, yy, S, A, K = ii(y);
+    #t_co2 = (h_column["co2"]' * x) / (h_column["co2"]' * xa)
+    t_n2o = (h_column["n2o"]' * x) / (h_column["n2o"]' * xa)
+    t_ch4 =(h_column["ch4"]' * x) / (h_column["ch4"]' * xa)
+    #@show (h_column["n2o"]' * x) / (h_column["n2o"]' * xa)
+    #@show t_ch4/t_n2o
+    @show t_ch4, t_n2o
+    #@show t_co2/t_n2o
+    append!(ch4_error, t_ch4)
+    #append!(co2_error, t_co2)
+    append!(n2o_error, t_n2o)
+    append!(albs, key[4])
+end
+
+plot(getColumnKernel(A, h_column, "co2"), a.profile.p*-1, label="CO2")
+plot!(getColumnKernel(A, h_column, "n2o"), a.profile.p*-1, label="N2O")
+plot!(getColumnKernel(A, h_column, "ch4"), a.profile.p*-1, label="CH4")
+plot!(getColumnKernel(A, h_column, "h2o"), a.profile.p*-1, label="H2O")
+
+=#
+
+function getColumnKernel(A, h_column, name)
+    cAK = (h_column[name]'*A)[1,:]./h_column[name]
+    ind = findall(x->x!=0,h_column[name]) 
+    return cAK[ind]
+end
