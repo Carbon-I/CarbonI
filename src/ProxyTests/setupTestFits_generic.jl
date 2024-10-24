@@ -25,23 +25,23 @@ struct FitParams{FT}
 end
 
 # Example Gas Array (we merge CO2_13 and CO2 now) ########################
-gas_array = ["co2", "ch4", "n2o", "h2o","hdo"];
-gas_array = ["ch4", "co2", "n2o", "h2o", "co", "hdo", "c2h6"];
-gas_array = ["ch4", "co2", "n2o",  "co",  "c2h6"];
+#gas_array = ["co2", "ch4", "n2o", "h2o","hdo"];
+#gas_array = ["ch4", "co2", "n2o", "h2o", "co", "hdo", "c2h6"];
+#gas_array = ["ch4", "co2", "n2o",  "co",  "c2h6"];
 gas_array = ["ch4", "n2o", "h2o", "co", "hdo", "c2h6"];
 setupFile = "/home/cfranken/code/gitHub/CarbonI/src/yaml/carbon-i.yaml"
 n_layers = 3
-indLR = 10:180
+#indLR = 8:260
 indLR = 287:410
-indLR = 7:410
-cls        = Dict(gas => 5500.0 for gas in gas_array)
-cls["h2o"] = 50.0
-cls["hdo"] = 50.0
-rel_errors = Dict(gas => 0.01 for gas in gas_array)
-rel_errors["h2o"] = 0.1
-rel_errors["hdo"] = 0.2
-rel_errors["n2o"] = 1e3
-pbl_error = 1e3
+#indLR = 7:410
+cls        = Dict(gas => 1550.0 for gas in gas_array)
+cls["h2o"] = 150.0
+cls["hdo"] = 150.0
+rel_errors = Dict(gas => 0.15 for gas in gas_array)
+rel_errors["h2o"] = 0.15
+rel_errors["hdo"] = 0.15
+rel_errors["n2o"] = 0.15
+pbl_error = 1.0
 # a = createFitParams(indLR, setupFile, n_layers, gas_array)
 # x, Sa, h_column = createBayesianConstraints(gas_array, a.gasProfiles,5, a.profile, 150.0, 900.0, cls, rel_errors)
 ############################################################################
@@ -214,12 +214,16 @@ function define_inverse_model(F, xa, Sa, Se, n, max_iter,iP ) where {FT}
 end
 
 #=
+# Load spectra:
+@load "simulated_rads_all.jld2" R_conv_carbonI_dict
+sorted_keys = sort(collect(keys(R_conv_carbonI_dict)));
+
 n_poly = 4
 a = createFitParams(indLR, setupFile, n_layers, gas_array)
 xa, Sa, h_column = createBayesianConstraints(gas_array, a.gasProfiles,n_poly, a.profile, 150.0, 800.0, cls, rel_errors, pbl_error)
 ff = define_forward_model(a)
 errors = 1e10*ones(length(indLR));
-errors .= 0.0003
+errors .= 0.00002
 Se = Diagonal(errors.^2);
 #Sa[15,15] = 100^2
 iP = length(xa)-n_poly+1
@@ -245,14 +249,16 @@ t_n2o = (h_column["n2o"]' * x) / (h_column["n2o"]' * xa)
 co2_error = []
 ch4_error = []
 n2o_error = []
-albs = []
+albs2 = []
 for key in sorted_keys
 #for i=2620:2632
+    if key[1] == 20.0
+        
     #key = sorted_keys[i]
     @show key
     y = R_conv_carbonI_dict[key][indLR];
     x, yy, S, A, K = ii(y);
-    #t_co2 = (h_column["co2"]' * x) / (h_column["co2"]' * xa)
+    t_co2 = (h_column["co2"]' * x) / (h_column["co2"]' * xa)
     t_n2o = (h_column["n2o"]' * x) / (h_column["n2o"]' * xa)
     t_ch4 =(h_column["ch4"]' * x) / (h_column["ch4"]' * xa)
     #@show (h_column["n2o"]' * x) / (h_column["n2o"]' * xa)
@@ -260,9 +266,10 @@ for key in sorted_keys
     @show t_ch4, t_n2o
     #@show t_co2/t_n2o
     append!(ch4_error, t_ch4)
-    #append!(co2_error, t_co2)
+    append!(co2_error, t_co2)
     append!(n2o_error, t_n2o)
-    append!(albs, key[4])
+    append!(albs2, key[4])
+    end
 end
 
 plot(getColumnKernel(A, h_column, "co2"), a.profile.p*-1, label="CO2")

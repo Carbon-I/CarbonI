@@ -50,7 +50,7 @@ function compute_atmos_profile_fields(T::AbstractArray{FT,1}, p_half::AbstractAr
             new_vmr[molec_i] = vmr[molec_i]
         end
     end
-
+    
     return p_full, p_half, vmr_h2o, vcd_dry, vcd_h2o, new_vmr, Δz
 
 end

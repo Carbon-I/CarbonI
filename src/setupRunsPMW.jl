@@ -78,13 +78,13 @@ result = DiffResults.JacobianResult(zeros(length(lociBox.ν_out)),x);
 
 
 # Define the instrument specs:
-ET  = 57.0u"ms"         # Exposure time
+ET  = 35.0u"ms"         # Exposure time
 SSI = (2*0.7)u"nm"      # Spectral resolution
 Pitch = 18.0u"μm"       # Pixel pitch
 FPA_QE = 0.85           # FPA quantum efficiency
 Bench_efficiency = 0.65 # Bench efficiency
-Fnumber = 2.0           # F-number
-readout_noise = 70.0    # Readout noise
+Fnumber = 2.2           # F-number
+readout_noise = 100.0    # Readout noise
 dark_current = 10e3u"1/s" # Dark current
 
 ins = InstrumentOperator.createGratingNoiseModel(ET, Pitch,FPA_QE, Bench_efficiency, Fnumber, SSI, (readout_noise), dark_current);
@@ -92,14 +92,15 @@ clima_alb = readdlm("data/albedo.csv",',', skipstart=1)
 #soil = CubicSplineInterpolation(450:2500,r[:,140], extrapolation_bc=Interpolations.Flat());
 soil = CubicSplineInterpolation(300:2400,clima_alb[:,2]/1.16, extrapolation_bc=Interpolations.Flat());
 solarIrr = sol(wl);
-refl   = soil(wl);
+refl     = soil(wl);
 
-L_conv = CarbonI.forward_model_x_(x; sun=sol(wl),reflectance=soil(wl), sza=0.0, instrument=lociBox, profile=profile,σ_matrix=σ_matrix, wl=wl )
+L_conv = CarbonI.forward_model_x_(x; sun=sol(wl),reflectance=soil(wl)*0.0 .+0.05, sza=20.0, instrument=lociBox, profile=profile,σ_matrix=σ_matrix, wl=wl )
 
 nesr = InstrumentOperator.noise_equivalent_radiance(ins, (lociBox.ν_out)u"nm", (L_conv)u"mW/m^2/nm/sr");
 nesr_unitless = nesr./1u"mW/m^2/nm/sr";
 plot(lociBox.ν_out, L_conv ./ nesr_unitless)
 e = InstrumentOperator.photons_at_fpa(ins, (lociBox.ν_out)u"nm", (L_conv)u"mW/m^2/nm/sr");
+eN = InstrumentOperator.noise_at_fpa(ins, e);
 
 # Get prior covariance matrix:
 n_state = length(x);
@@ -241,6 +242,7 @@ Plots.title!("Carbon-I SAA impact simulation")
 
 # Run model:
 szas = collect(0:5:80)
+szas = collect(20:10:30)
 alb = collect(0.02:0.02:0.5)
 resis = zeros(length(szas),length(alb),8)
 iSZA = 10

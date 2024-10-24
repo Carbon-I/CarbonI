@@ -12,3 +12,12 @@ Manifest.toml
 C2H6_overtone
 
 Manifest.toml
+data/ne_10m_coastline/ne_10m_coastline.cpg
+data/ne_10m_coastline/ne_10m_coastline.dbf
+data/ne_10m_coastline/ne_10m_coastline.README.html
+data/ne_10m_coastline/ne_10m_coastline.shx
+data/Sentinel2_LosAngeles_60m.tif
+Manifest.toml
+data/ne_10m_coastline/ne_10m_coastline.shp
+data/ne_10m_coastline/ne_10m_coastline.prj
+data/ne_10m_coastline/ne_10m_coastline.VERSION.txt

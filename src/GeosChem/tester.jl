@@ -7,6 +7,7 @@ aod_ocpi = geos.data["aod_ocpi"];
 aod_bcpi = geos.data["aod_bcpi"];
 aod_so4 = geos.data["aod_so4"];
 aod_strat = geos.data["aod_strat"];
+rad_so4 = geos.data["radius_so4"];
 
 heatmap(sum(aod_so4[:,:,:,1], dims=3)[:,:,1]',color=:viridis); title!("AOD_SO4");savefig("/home/cfranken/AOD_SO4.pdf")
 heatmap(sum(aod_sala[:,:,:,1], dims=3)[:,:,1]',color=:viridis); title!("AOD_SAL Accumlation mode");savefig("/home/cfranken/AOD_SALA.pdf")
@@ -61,3 +62,46 @@ end
 Total_AOD = sum(aod["aod_so4"]) + sum(aod["aod_ocpi"]) + sum(aod["aod_strat"]) + sum(aod["aod_dust"])
 
 heatmap(geos.data["C2H6"][:,:,1,1]'*1e9)
+
+function compute_aod_half_level_and_weighted_radius(aod::Array{FT,3}, radius::Array{FT,3}) where {FT}
+    # Get the dimensions of the input arrays
+    n_lon, n_lat, n_height = size(aod)
+    
+    # Initialize arrays to store the results
+    half_aod_levels = Array{Int, 2}(undef, n_lon, n_lat)
+    weighted_avg_radius = Array{FT, 2}(undef, n_lon, n_lat)
+
+    # Loop through each (longitude, latitude) point
+    for i in 1:n_lon
+        for j in 1:n_lat
+            # Get the AOD and radius values for this grid point across all height levels
+            aod_vals = aod[i, j, :]
+            radius_vals = radius[i, j, :]
+            
+            # ---- Part 1: Compute the height level where AOD reaches half of total ----
+            # Total AOD for this grid point
+            total_aod = sum(aod_vals)
+            
+            # Cumulative AOD
+            cumulative_aod = cumsum(aod_vals)
+            
+            # Find the height level where cumulative AOD reaches half the total AOD
+            half_aod = total_aod / 2
+            level = findfirst(cumulative_aod .>= half_aod)
+            half_aod_levels[i, j] = level
+            
+            # ---- Part 2: Compute the AOD-weighted average radius ----
+            if total_aod > 0
+                # Compute weighted sum of radius using AOD as weights
+                weighted_sum_radius = sum(radius_vals .* aod_vals)
+                # Compute the weighted average radius
+                weighted_avg_radius[i, j] = weighted_sum_radius / total_aod
+            else
+                # Handle cases where total AOD is zero
+                weighted_avg_radius[i, j] = NaN  # or 0 if more appropriate
+            end
+        end
+    end
+
+    return half_aod_levels, weighted_avg_radius
+end

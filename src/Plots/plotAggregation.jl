@@ -94,6 +94,31 @@ hideydecorations!(ax3, grid=false)
 f
 save("plots/aggregation_length_scales_GlobalMode.pdf", f)
 
+f = Figure(resolution=(400,600), title="Aggregation length scales when using the N₂O proxy for high accuracy (precision in %)", fontsize=16)
+ax1 = Axis(f[1,1], ylabel="Cloud Fraction",  title="Albedo=0.05", )
+CairoMakie.xlims!(0,20)
+CairoMakie.ylims!(0,0.94)
+ax2 = Axis(f[2,1], ylabel="Cloud Fraction", xlabel="Aggregation Scale (km)", title="Albedo=0.15")
+CairoMakie.xlims!(0,20)
+CairoMakie.ylims!(0,0.94)
+
+iS = findall(scales .< 20)
+co = CairoMakie.contourf!(ax1, scales[iS], cloud_fracs,1.0./sqrt.(eff_pix_area[iS,:]./pixArea)*n2o_error(0.05)*100, levels=[0.05, 0.1,0.15, 0.25, 1],  labels=true, colorrange=(0.05,5), colormap = (:viridis, 0.5), extendhigh = (:orange,0.4), extendlow = (:gray,0.4)); 
+CairoMakie.contour!(ax1, scales[iS ], cloud_fracs,1.0./sqrt.(eff_pix_area[iS,:]./pixArea)*n2o_error(0.05)*100, levels=[0.05, 0.1,0.15, 0.25, 1],  labels=true, colorrange=(0.05,5), labelsize = 14,labelfont = :bold); 
+#S = findall(scales .< 25)
+CairoMakie.contourf!(ax2, scales[iS ], cloud_fracs,1.0./sqrt.(eff_pix_area[iS,:]./pixArea)*n2o_error(0.15)*100, levels=[0.05, 0.1,0.15, 0.25, 1],  labels=true, colorrange=(0.05,5), colormap = (:viridis, 0.5), extendhigh = (:orange,0.4), extendlow = (:gray,0.4)); 
+CairoMakie.contour!(ax2, scales[iS ], cloud_fracs,1.0./sqrt.(eff_pix_area[iS,:]./pixArea)*n2o_error(0.15)*100, levels=[0.05, 0.1,0.15, 0.25, 1],  labels=true, colorrange=(0.05,5), labelsize = 14,labelfont = :bold); 
+
+#CairoMakie.Colorbar(f[1,4],co)
+#hideydecorations!(ax2, grid=false)
+hidexdecorations!(ax1, grid=false)
+#hideydecorations!(ax2, grid=false)
+
+f
+save("plots/aggregation_length_scales_GlobalMode_2P.pdf", f)
+
+
+
 f = Figure(resolution=(400,300), title="Aggregation length scales when using the N₂O proxy for high accuracy (precision in %)")
 ax1 = Axis(f[1,1], ylabel="Cloud Fraction", xlabel="Aggregation Scale (km)", title="Albedo=0.1")
 CairoMakie.xlims!(0,50)
@@ -144,3 +169,25 @@ hideydecorations!(ax3, grid=false)
 
 f
 save("plots/aggregation_length_scales_TargetMode.pdf", f)
+
+pixAreaTarget = 0.035 * 0.035
+f = Figure(resolution=(400,600), title="Aggregation length scales when using the N₂O proxy for high accuracy (precision in %)", fontsize=16)
+ax1 = Axis(f[1,1], ylabel="Cloud Fraction",  title="Albedo=0.05")
+CairoMakie.xlims!(0,20)
+CairoMakie.ylims!(0,0.94)
+ax2 = Axis(f[2,1], ylabel="Cloud Fraction", xlabel="Aggregation Scale (km)", title="Albedo=0.15")
+CairoMakie.xlims!(0,20)
+CairoMakie.ylims!(0,0.94)
+
+iS = findall(scales .< 20)
+co = CairoMakie.contourf!(ax1, scales[iS], cloud_fracs,1.0./sqrt.(eff_pix_area[iS,:]./pixAreaTarget)*n2o_error(0.05)*100, levels=[0.05, 0.1,0.15, 0.25, 1],  labels=true, colorrange=(0.05,5), colormap = (:viridis, 0.5), extendhigh = (:orange,0.4), extendlow = (:gray,0.4)); 
+co1 = CairoMakie.contour!(ax1, scales[iS], cloud_fracs,1.0./sqrt.(eff_pix_area[iS,:]./pixAreaTarget)*n2o_error(0.05)*100, levels=[0.05, 0.1,0.15, 0.25, 1],  labels=true,  colorrange=(0.05,5), labelsize = 14,labelfont = :bold); 
+
+CairoMakie.contourf!(ax2, scales[iS], cloud_fracs,1.0./sqrt.(eff_pix_area[iS,:]./pixAreaTarget)*n2o_error(0.15)*100, levels=[0.05, 0.1,0.15, 0.25, 1],  labels=true, colorrange=(0.05,5), colormap = (:viridis, 0.5), extendhigh = (:orange,0.4), extendlow = (:gray,0.4)); 
+CairoMakie.contour!(ax2, scales[iS], cloud_fracs,1.0./sqrt.(eff_pix_area[iS,:]./pixAreaTarget)*n2o_error(0.15)*100, levels=[0.05, 0.1,0.15, 0.25, 1],  labels=true, colorrange=(0.05,5), labelsize = 14,labelfont = :bold); 
+
+#CairoMakie.Colorbar(f[1,4],co)
+hidexdecorations!(ax1, grid=false)
+
+f
+save("plots/aggregation_length_scales_TargetMode_2P.pdf", f)

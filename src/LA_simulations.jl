@@ -180,7 +180,7 @@ e = InstrumentOperator.photons_at_fpa(ins, (lociBox.ν_out)u"nm", (F)u"mW/m^2/nm
 photon_flux =  F/1000 .* lociBox.ν_out * 1e-9/ (6.626e-34 * 2.998e8) 
 
 using NCDatasets
-f = Dataset("data/LA_target.nc")
+f = Dataset("data/Sentinel2_Delhi_30m.nc")
 la = f["data"][:]
 laa = la[:,end:-1:1]'
 
@@ -189,6 +189,7 @@ fpa = zeros(3072,512);
 fpa[33:end-34,13:end-14] .= laa[ll,:].*e';
 fpa1 = laa[1,:].*e'
 fpa2 = laa[:,end].*e'
+fpa3 = laa[:,1].*e'
 # Create the heatmap
 
 fig = Figure(size=(700, 700))
@@ -298,6 +299,33 @@ hideydecorations!(ax, grid=false)
 #linkyaxes!(ax, ax3)
 fig
 save("plots/LA_target_side2.png", fig)
+
+fig = Figure()
+# Use heatmap, and set axis aspect to `DataAspect()`
+ax = Axis(fig[1, 1], aspect = DataAspect())
+#ax2 = Axis(fig[2, 1], aspect = DataAspect())
+#ax3 = Axis(fig[3, 1], aspect = DataAspect())
+#ax3 = Axis(fig[2, 2])
+
+# Plot the heatmap with axis limits set to size of the data
+#CairoMakie.heatmap!(ax2, fpa1, colorrange=(0.0,18000),colormap=:tokyo)
+#CairoMakie.heatmap!(ax3, fpa2, colorrange=(0.0,18000),colormap=:tokyo)
+CairoMakie.heatmap!(ax, fpa3, colorrange=(0.0,18000),colormap=:grays)
+#CairoMakie.hlines!(ax, [ll], color = :red, linewidth = 2, alpha=0.4)
+#lines!(ax3, [zeros(13); photon_flux; zeros(13)], 1:512, color = :black, linewidth = 1)
+#hide_axis!(ax)  
+#hide_axis!(ax2)
+#rowsize!(fig.layout,1,Relative(0.828))
+#hidexdecorations!(ax2, grid=false)
+hidexdecorations!(ax, grid=false)
+hideydecorations!(ax, grid=false)
+#hideydecorations!(ax2, grid=false)
+#hideydecorations!(ax3, grid=false)
+#hidexdecorations!(ax3, grid=false)
+#rowgap!(fig.layout,5)
+#linkyaxes!(ax, ax3)
+fig
+save("plots/LA_target_side3.png", fig)
 
 fig = Figure(size=(300, 500))
 ax = Axis(fig[1, 1])

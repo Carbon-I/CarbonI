@@ -129,3 +129,4 @@ CairoMakie.xlims!(0.02, 0.5)
 CairoMakie.ylims!(0, 13)
 fig
 CairoMakie.save("CarbonI_Albedo_dist.pdf", fig)
+N₂O
