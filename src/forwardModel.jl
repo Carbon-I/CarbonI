@@ -135,7 +135,7 @@ function forward_model_x_(𝐱::AbstractArray{FT} ;sun = solarIrr,reflectance=re
     #@show size(vmrs)
     # Air Mass Factor
     AMF = 1/cosd(sza) + 1/cosd(vza)
-    
+    @show sza
     # Total sum of τ
     ∑τ = zeros(FT,size(σ_matrix,1))
 	#@show size(vmrs,2)

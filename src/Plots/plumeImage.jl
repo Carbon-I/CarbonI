@@ -47,14 +47,14 @@ y6 = range(0, (size(C6,2)-1)*30, size(C6,2))
 x60 = range(0, (size(C60,1)-1)*300, size(C60,1))
 y60 = range(0, (size(C60,2)-1)*300, size(C60,2))
 
-p1 = heatmap(y1,x1,C1,xaxis=nothing, yaxis=nothing, cmap=:gist_yarg, aspect_ratio=:equal, clim=(0,0.5e18), title="5m resolution", colorbar=:false); xlims!(0,1190); ylims!(0,1005)
-p2 = heatmap(y6,x6,C6,xaxis=nothing, yaxis=nothing,cmap=:gist_yarg, aspect_ratio=:equal, clim=(0,0.5e18), title="30m resolution", colorbar=:false); xlims!(0,1190); ylims!(0,1005)
-p3 = heatmap(y60,x60,C60,xaxis=nothing, yaxis=nothing,cmap=:gist_yarg, aspect_ratio=:equal, clim=(0,0.5e18), title="300m resolution",colorbar=:false); xlims!(0,1190); ylims!(0,1005)
+p1 = Plots.heatmap(y1,x1,C1,xaxis=nothing, yaxis=nothing, cmap=:gist_yarg, aspect_ratio=:equal, clim=(0,0.5e18), title="5m resolution", colorbar=:false); xlims!(0,1190); ylims!(0,1005)
+p2 = Plots.heatmap(y6,x6,C6,xaxis=nothing, yaxis=nothing,cmap=:gist_yarg, aspect_ratio=:equal, clim=(0,0.5e18), title="30m resolution", colorbar=:false); xlims!(0,1190); ylims!(0,1005)
+p3 = Plots.heatmap(y60,x60,C60,xaxis=nothing, yaxis=nothing,cmap=:gist_yarg, aspect_ratio=:equal, clim=(0,0.5e18), title="300m resolution",colorbar=:false); xlims!(0,1190); ylims!(0,1005)
 
 l = @layout [a b c]
 
-plot(p1, p2, p3, layout = l)
-plot!(size=(950,300))
+Plots.plot(p1, p2, p3, layout = l)
+Plots.plot!(size=(950,300))
 savefig("/home/cfranken/PixelEnhancements_map.pdf")
 savefig("/home/cfranken/PixelEnhancements_map.png")
 

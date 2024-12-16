@@ -1,3 +1,8 @@
+using CarbonI, vSmartMOM
+using ImageFiltering, DiffResults, ForwardDiff, InstrumentOperator, Unitful, Interpolations
+using NCDatasets, Polynomials, LinearAlgebra, SpecialPolynomials
+using CairoMakie, JLD2, Plots, Statistics
+
 "Struct for an atmospheric profile"
 struct FitParams{FT}
     "High Resolution Indices (for the forward model)"
@@ -25,25 +30,28 @@ struct FitParams{FT}
 end
 
 # Example Gas Array (we merge CO2_13 and CO2 now) ########################
-#gas_array = ["co2", "ch4", "n2o", "h2o","hdo"];
+#=
+gas_array = ["co2", "ch4", "n2o", "h2o","hdo"];
 #gas_array = ["ch4", "co2", "n2o", "h2o", "co", "hdo", "c2h6"];
 #gas_array = ["ch4", "co2", "n2o",  "co",  "c2h6"];
-gas_array = ["ch4", "n2o", "h2o", "co", "hdo", "c2h6"];
+#gas_array = ["ch4", "n2o", "h2o", "co", "hdo", "c2h6"];
 setupFile = "/home/cfranken/code/gitHub/CarbonI/src/yaml/carbon-i.yaml"
-n_layers = 3
-#indLR = 8:260
-indLR = 287:410
+n_layers = 10
+indLR = 8:260
+#indLR = 287:410
 #indLR = 7:410
 cls        = Dict(gas => 1550.0 for gas in gas_array)
 cls["h2o"] = 150.0
+cls["co2"] = 150.0
 cls["hdo"] = 150.0
 rel_errors = Dict(gas => 0.15 for gas in gas_array)
 rel_errors["h2o"] = 0.15
 rel_errors["hdo"] = 0.15
 rel_errors["n2o"] = 0.15
-pbl_error = 1.0
-# a = createFitParams(indLR, setupFile, n_layers, gas_array)
-# x, Sa, h_column = createBayesianConstraints(gas_array, a.gasProfiles,5, a.profile, 150.0, 900.0, cls, rel_errors)
+pbl_error = 100.0
+a = createFitParams(indLR, setupFile, n_layers, gas_array)
+x, Sa, h_column = createBayesianConstraints(gas_array, a.gasProfiles,5, a.profile, 150.0, 900.0, cls, rel_errors)
+=#
 ############################################################################
 
 # Need to add options to split profile into strat, free trop and boundary layer
@@ -209,7 +217,6 @@ function define_inverse_model(F, xa, Sa, Se, n, max_iter,iP ) where {FT}
         y_mod = F(x_all[:,end]);
         return x_all[:,end], y_mod, Ŝ, A, K
     end
-
     return invert
 end
 
@@ -217,6 +224,7 @@ end
 # Load spectra:
 @load "simulated_rads_all.jld2" R_conv_carbonI_dict
 sorted_keys = sort(collect(keys(R_conv_carbonI_dict)));
+#println(keys(R_conv_carbonI_dict));
 
 n_poly = 4
 a = createFitParams(indLR, setupFile, n_layers, gas_array)
@@ -229,31 +237,31 @@ Se = Diagonal(errors.^2);
 iP = length(xa)-n_poly+1
 ii = define_inverse_model(ff,xa,Sa,Se,length(indLR),4,iP);
 
+# # co2_error = []
+# # for i=1:100
+# #     @show i
+# #     y = ff(x) + randn(length(indLR))*0.0015;
+# #     x, yy, S = ii(y);
+# #     append!(co2_error, h_column["co2"]' * x̂)
+# # end
 
-co2_error = []
-for i=1:100
-    @show i
-    y = ff(x) + randn(length(indLR))*0.0015;
-    x, yy, S = ii(y);
-    append!(co2_error, h_column["co2"]' * x̂)
-end
-
-# Ratio of the error to the true value
-t_co2 = (h_column["co2"]' * x) / (h_column["co2"]' * xa)
-t_n2o = (h_column["n2o"]' * x) / (h_column["n2o"]' * xa)
-@show (h_column["co2"]' * x) / (h_column["co2"]' * xa)
-@show (h_column["n2o"]' * x) / (h_column["n2o"]' * xa)
-@show (h_column["h2o"]' * x) / (h_column["h2o"]' * xa)
-@show (h_column["ch4"]' * x) / (h_column["ch4"]' * xa)
+# # # Ratio of the error to the true value
+# # t_co2 = (h_column["co2"]' * x) / (h_column["co2"]' * xa)
+# # t_n2o = (h_column["n2o"]' * x) / (h_column["n2o"]' * xa)
+# # @show (h_column["co2"]' * x) / (h_column["co2"]' * xa)
+# # @show (h_column["n2o"]' * x) / (h_column["n2o"]' * xa)
+# # @show (h_column["h2o"]' * x) / (h_column["h2o"]' * xa)
+# # @show (h_column["ch4"]' * x) / (h_column["ch4"]' * xa)
 
 co2_error = []
 ch4_error = []
 n2o_error = []
+h2o_error = []
 albs2 = []
 for key in sorted_keys
 #for i=2620:2632
     if key[1] == 20.0
-        
+    #global A
     #key = sorted_keys[i]
     @show key
     y = R_conv_carbonI_dict[key][indLR];
@@ -261,26 +269,35 @@ for key in sorted_keys
     t_co2 = (h_column["co2"]' * x) / (h_column["co2"]' * xa)
     t_n2o = (h_column["n2o"]' * x) / (h_column["n2o"]' * xa)
     t_ch4 =(h_column["ch4"]' * x) / (h_column["ch4"]' * xa)
+    t_h2o =(h_column["h2o"]' * x) / (h_column["h2o"]' * xa)
     #@show (h_column["n2o"]' * x) / (h_column["n2o"]' * xa)
     #@show t_ch4/t_n2o
-    @show t_ch4, t_n2o
+    @show t_ch4, t_n2o, t_co2, t_h2o
     #@show t_co2/t_n2o
     append!(ch4_error, t_ch4)
     append!(co2_error, t_co2)
     append!(n2o_error, t_n2o)
+    append!(h2o_error, t_h2o)
     append!(albs2, key[4])
     end
 end
+aods = [a[3] for a in sorted_keys];
+szas = [a[1] for a in sorted_keys];
+indi = findall(x->x==20.0,szas)
 
-plot(getColumnKernel(A, h_column, "co2"), a.profile.p*-1, label="CO2")
-plot!(getColumnKernel(A, h_column, "n2o"), a.profile.p*-1, label="N2O")
-plot!(getColumnKernel(A, h_column, "ch4"), a.profile.p*-1, label="CH4")
-plot!(getColumnKernel(A, h_column, "h2o"), a.profile.p*-1, label="H2O")
-
-=#
 
 function getColumnKernel(A, h_column, name)
     cAK = (h_column[name]'*A)[1,:]./h_column[name]
     ind = findall(x->x!=0,h_column[name]) 
     return cAK[ind]
 end
+
+Plots.plot(getColumnKernel(A, h_column, "co2"), a.profile.p*-1, label="CO2")
+Plots.plot!(getColumnKernel(A, h_column, "n2o"), a.profile.p*-1, label="N2O")
+Plots.plot!(getColumnKernel(A, h_column, "ch4"), a.profile.p*-1, label="CH4")
+
+@save "mwCO2_fits_generic_10.jld2" n2o_error ch4_error co2_error h2o_error albs2 aods szas
+#Plots.plot!(getColumnKernel(A, h_column, "h2o"), a.profile.p*-1, label="H2O")
+
+
+=#

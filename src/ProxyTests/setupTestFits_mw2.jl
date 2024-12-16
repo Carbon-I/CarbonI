@@ -210,7 +210,7 @@ for key in sorted_keys
         A.=  Gain*Kᵢ
         K .= Kᵢ
         x_all[:,i+1] = xa + Gain * (y - Fᵢ + Kᵢ *(x_all[:,i]-xa))
-        Ff .= Fᵢ
+        #Ff .= Fᵢ
         #println("Column averaged CO₂: ", (h_co2' * x_all[:,i+1] * 1e6)/400*100)
         #println("Column averaged 13CO₂: ", (h_co2_' * x_all[:,i+1] * 1e6)/400*100)
         if i==max_no_of_iter
