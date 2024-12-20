@@ -1,8 +1,9 @@
+using Pkg.Artifacts
 # Load cross section tables (can toggle to also use ABSCO, doesn't cover full range though)
 function loadXSModels()
-    co2 = load_interpolation_model("data/co2_model.jld2")
+    co2 = load_interpolation_model(artifact"xs"*"co2_model.jld2")
     co2_iso2 = load_interpolation_model("data/co2_model_iso2.jld2")
-    co2_ = load_interpolation_model("/net/fluo/data3/data/FluoData1/projects/ABSCO_CS_Database/v5.2_final/sco2_v52.jld2")
+    co2_ = load_interpolation_model("/data/sco2_v52.jld2")
     etp0 = extrapolate(co2_.itp, 0.0)
     co2__ = InterpolationModel( etp0, co2_.mol, co2_.iso, co2_.ν_grid, co2_.p_grid, co2_.t_grid);
     ch4 = load_interpolation_model("data/ch4_model.jld2")

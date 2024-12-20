@@ -1,0 +1,7 @@
+[merra]
+git-tree-sha1 = "224bda89ab34e53d9c91098648326118c9be94ea"
+lazy = true
+
+    [[merra.download]]
+    sha256 = "8c23698b5a6bd35c08d2b63bba85f689eb57d6011e2a65790af07a1ed135eb2a"
+    url = "http://web.gps.caltech.edu/~cfranken/Carbon-I/merra.tar.gz"
