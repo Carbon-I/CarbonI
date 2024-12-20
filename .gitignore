@@ -23,3 +23,4 @@ data/ne_10m_coastline/ne_10m_coastline.prj
 data/ne_10m_coastline/ne_10m_coastline.VERSION.txt
 data/*.tar.gz
 *.tar.gz
+Manifest copy.toml

@@ -1,5 +1,9 @@
 module CarbonI
 
+using Artifacts, LazyArtifacts
+using Pkg.Artifacts: load_artifacts_toml, ensure_artifact_installed
+#@show artifact"cross_sections"
+#artifact_path(_hash)
 using vSmartMOM
 using vSmartMOM.Absorption
 using NCDatasets
@@ -10,7 +14,6 @@ using Distributions
 using Interpolations
 using Polynomials
 
-using vSmartMOM.Absorption
 using Parameters
 using CSV
 using DelimitedFiles

@@ -1,4 +1,4 @@
-using SpecialPolynomials, SparseArrays
+using SpecialPolynomials#, SparseArrays
 
 function forward_model_x(𝐱::AbstractArray{FT} ;sun = solarIrr, instrument=lociBox, sza=sza, vza = 0.0, profile=profile,σ_matrix=σ_matrix, wl=wl) where {FT}
     dims = size(σ_matrix)

@@ -1,17 +1,19 @@
-using Pkg.Artifacts
+
+#ensure_artifact_installed("cross_sections", find_artifacts_toml(@__DIR__), quiet_download = true)
 # Load cross section tables (can toggle to also use ABSCO, doesn't cover full range though)
-function loadXSModels()
-    co2 = load_interpolation_model(artifact"xs"*"co2_model.jld2")
-    co2_iso2 = load_interpolation_model("data/co2_model_iso2.jld2")
-    co2_ = load_interpolation_model("/data/sco2_v52.jld2")
-    etp0 = extrapolate(co2_.itp, 0.0)
-    co2__ = InterpolationModel( etp0, co2_.mol, co2_.iso, co2_.ν_grid, co2_.p_grid, co2_.t_grid);
-    ch4 = load_interpolation_model("data/ch4_model.jld2")
-    h2o = load_interpolation_model("data/h2o_model_tccon.jld2")
-    hdo = load_interpolation_model("data/hdo_model.jld2")
-    n2o = load_interpolation_model("data/n2o_model.jld2")
-    co  = load_interpolation_model("data/co_model.jld2")
-    c2h6  = load_interpolation_model("data/c2h6_model.jld2")
+function loadXSModels(path)
+    co2 = load_interpolation_model(path*"/co2_model.jld2")
+    co2_iso2 = load_interpolation_model(path*"/co2_model_iso2.jld2")
+    # Commenting out the ABSCO CO2 table for now, as I want 13CO2 and CO2 in the same table
+    #co2_ = load_interpolation_model(artifact"cross_sections"*"/sco2_v52.jld2")
+    #etp0 = extrapolate(co2_.itp, 0.0)
+    #co2__ = InterpolationModel( etp0, co2_.mol, co2_.iso, co2_.ν_grid, co2_.p_grid, co2_.t_grid);
+    ch4 = load_interpolation_model(path*"/ch4_model.jld2")
+    h2o = load_interpolation_model(path*"/h2o_model_tccon.jld2")
+    hdo = load_interpolation_model(path*"/hdo_model.jld2")
+    n2o = load_interpolation_model(path*"/n2o_model.jld2")
+    co  = load_interpolation_model(path*"/co_model.jld2")
+    c2h6  = load_interpolation_model(path*"/c2h6_model.jld2")
     #return co2__, ch4, h2o, hdo, n2o, co, co2_iso2, c2h6
     return co2, ch4, h2o, hdo, n2o, co, co2_iso2, c2h6
 end
