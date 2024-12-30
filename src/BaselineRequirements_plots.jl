@@ -4,15 +4,14 @@ using ImageFiltering, DiffResults, ForwardDiff, InstrumentOperator, Unitful, Int
 using NCDatasets, Polynomials, LinearAlgebra, SpecialPolynomials, DelimitedFiles
 using CairoMakie
 # Load spectroscopies:
-co2, ch4, h2o, hdo, n2o, co, co2_iso2, c2h6 = CarbonI.loadXSModels();
+co2, ch4, h2o, hdo, n2o, co, co2_iso2, c2h6 = CarbonI.loadXSModels(artifact"cross_sections");
 
 include("src/readSun.jl")
 #include("src/readSun_DC.jl")
 include("src/forwardModel.jl")
 
 # Load some profile:
-MD = "/net/fluo/data1/ftp/XYZT_ESE156/Data/MERRA300.prod.assim.inst6_3d_ana_Nv.20150613.hdf.nc4"
-MD = "./MERRA2_300.tavg3_3d_asm_Nv.20100610.nc4"
+MD = artifact"merra"*"/MERRA2_300.tavg3_3d_asm_Nv.20100610.nc4"
 #MD = "./MERRA2_400.tavg3_3d_asm_Np.20200610.nc4"
 hitran_array = (co2, h2o, ch4, co, n2o, hdo, co2_iso2, c2h6);
 

@@ -6,7 +6,7 @@ using CairoMakie
 
 
 # Load spectroscopies:
-co2, ch4, h2o, hdo, n2o, co, co2_iso2, c2h6 = CarbonI.loadXSModels();
+co2, ch4, h2o, hdo, n2o, co, co2_iso2, c2h6 = CarbonI.loadXSModels(artifact"cross_sections");
 
 # Read Solar Spectra (not used for the simple tests)
 # include("src/readSun.jl")

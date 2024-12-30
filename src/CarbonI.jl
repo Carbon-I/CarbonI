@@ -1,9 +1,6 @@
 module CarbonI
 
-using Artifacts, LazyArtifacts
-using Pkg.Artifacts: load_artifacts_toml, ensure_artifact_installed
-#@show artifact"cross_sections"
-#artifact_path(_hash)
+###### Julia packages to import  ############
 using vSmartMOM
 using vSmartMOM.Absorption
 using NCDatasets
@@ -13,13 +10,16 @@ using ImageFiltering
 using Distributions
 using Interpolations
 using Polynomials
-
 using Parameters
+using DocStringExtensions      # Documentation
 using CSV
 using DelimitedFiles
 using ForwardDiff, DiffResults
+using Pkg.Artifacts
+
 
 include("tools.jl")
+const xs_folder = get_artifacts_path("cross_sections")
 include("priorCovariances.jl")
 include("instrument_shapes.jl")
 include("forwardModel.jl")

@@ -1,5 +1,13 @@
 
 #ensure_artifact_installed("cross_sections", find_artifacts_toml(@__DIR__), quiet_download = true)
+function get_artifacts_path(name)
+    # This returns the full path to the current Project.toml or parent environment file
+    proj_toml = Base.current_project()
+    # Extract just the directory part
+    proj_dir = dirname(proj_toml)
+    return ensure_artifact_installed(name, find_artifacts_toml(proj_dir), quiet_download = true)
+end
+#ensure_artifact_installed("cross_sections", find_artifacts_toml(@__DIR__), quiet_download = true)
 # Load cross section tables (can toggle to also use ABSCO, doesn't cover full range though)
 function loadXSModels(path)
     co2 = load_interpolation_model(path*"/co2_model.jld2")
