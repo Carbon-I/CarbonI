@@ -20,6 +20,7 @@ using Pkg.Artifacts
 
 include("tools.jl")
 const xs_folder = get_artifacts_path("cross_sections")
+const merra_folder = get_artifacts_path("merra")
 include("priorCovariances.jl")
 include("instrument_shapes.jl")
 include("forwardModel.jl")

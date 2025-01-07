@@ -69,7 +69,8 @@ absorption:
   molecules:
   - [H2O,CO2,CH4, N2O, CO, CO2_13, C2H6, HDO]
   LUTfiles:
-  - ["data/h2o_model_tccon.jld2", "data/co2_model.jld2","data/ch4_model.jld2","data/n2o_model.jld2","data/co_model.jld2","data/co2_model_iso2.jld2","data/c2h6_model.jld2","data/hdo_model.jld2"]
+  - ["/home/cfranken/code/gitHub/CarbonI/data/h2o_model_tccon.jld2", "/home/cfranken/code/gitHub/CarbonI/data/co2_model.jld2","/home/cfranken/code/gitHub/CarbonI/data/ch4_model.jld2","/home/cfranken/code/gitHub/CarbonI/data/n2o_model.jld2","/home/cfranken/code/gitHub/CarbonI/data/co_model.jld2",
+    "/home/cfranken/code/gitHub/CarbonI/data/co2_model_iso2.jld2","/home/cfranken/code/gitHub/CarbonI/data/c2h6_model.jld2","/home/cfranken/code/gitHub/CarbonI/data/hdo_model.jld2"]
   #  - [H2O,CO2,CH4, N2O, CO]  # Molecules in Band #1 (using LUT later)
   # LookUpTable files (Interpolation Model saved as JLD2!)
   

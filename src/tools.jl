@@ -288,21 +288,21 @@ function reduce_profile(n::Int, profile::AtmosphericProfile{FT}, σ_matrix, gasP
     for i = 1:n
         ind = findall(a[i] .< profile.p .<= a[i + 1]);
         push!(indis,ind)
-        @show ind
+        #@show ind
         h = profile.vcd_dry[ind]
         h ./= sum(h)
         # This has to be weighted by vcd_dry!
         for iGas=1:dims[3]
-            @show iGas, ind
-            @show size(gasProfiles[iGas])
+            #@show iGas, ind
+            #@show size(gasProfiles[iGas])
             # Weigh by gas VCD high res profile:
             gasP = gasProfiles[iGas][ind] .* profile.vcd_dry[ind]
             gas_vmr = sum(gasP)/sum(profile.vcd_dry[ind])
             gasProfile_low_res[iGas][i] = gas_vmr
             gasP ./= sum(gasP)
-            @show gas_vmr, mean(gasProfiles[iGas][ind])
+            #@show gas_vmr, mean(gasProfiles[iGas][ind])
             σ_matrix_lr[:,i,iGas] = σ_matrix[:,ind,iGas] *gasP
-            @show sum(gasP)
+            #@show sum(gasP)
         end
         p_levels[i] = a[i]
         p_levels[i + 1] = a[i+1]
@@ -394,11 +394,11 @@ function reduce_pressure_levels(pressures, n::Int)
         #@show diff, sorted_pressures
         indi = findall(diff .>= 0)
         closest_index = indi[1]
-        @show i, target_pressures[i]/100, closest_index
+        #@show i, target_pressures[i]/100, closest_index
         new_pressures[i] = sorted_pressures[closest_index]
-        @show new_pressures[i]
+        #@show new_pressures[i]
     end
-    @show new_pressures
+    #@show new_pressures
     # Remove duplicates in case multiple target pressures are closest to the same pressure level
     new_pressures = unique(new_pressures)
 
