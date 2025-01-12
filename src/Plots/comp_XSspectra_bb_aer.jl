@@ -130,7 +130,8 @@ for iμ = 1:length(vμ)
 end
 
 CS = ColorSchemes.seaborn_colorblind
-include("src/Plots/CI_colors.jl")
+include(joinpath(@__DIR__, "Plots", "CI_colors.jl"))
+
 
 aer_size = 0.01:0.001:3
 n = 8 #normalization wavelength

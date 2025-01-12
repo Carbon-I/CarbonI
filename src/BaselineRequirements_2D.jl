@@ -4,7 +4,7 @@ using ImageFiltering, DiffResults, ForwardDiff, InstrumentOperator, Unitful, Int
 using NCDatasets, Polynomials, LinearAlgebra, SpecialPolynomials, DelimitedFiles
 using CairoMakie
 # Load spectroscopies:
-co2, ch4, h2o, hdo, n2o, co, co2_iso2, c2h6 = CarbonI.loadXSModels(CarbonI.xs_folder);
+co2, ch4, h2o, hdo, n2o, co, co2_iso2, c2h6 = CarbonI.loadXSModels();
 
 #include(joinpath(@__DIR__, "readSun_DC.jl"))
 include(joinpath(@__DIR__, "readSun.jl"))

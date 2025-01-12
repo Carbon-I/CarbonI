@@ -3,11 +3,11 @@ using CarbonI
 using ImageFiltering, DiffResults, ForwardDiff, InstrumentOperator, Unitful, Interpolations
 using NCDatasets, Polynomials, LinearAlgebra, SpecialPolynomials
 # Load spectroscopies:
-co2, ch4, h2o, hdo, n2o, co, co2_iso2, c2h6 = CarbonI.loadXSModels(artifact"cross_sections");
+co2, ch4, h2o, hdo, n2o, co, co2_iso2, c2h6 = CarbonI.loadXSModels();
 
-include("src/readSun.jl")
-#include("src/readSun_DC.jl")
-include("src/forwardModel.jl")
+#include(joinpath(@__DIR__, "readSun_DC.jl"))
+include(joinpath(@__DIR__, "readSun.jl"))
+include(joinpath(@__DIR__, "forwardModel.jl"))
 
 # Load some profile:
 #MD = "/net/fluo/data1/ftp/XYZT_ESE156/Data/MERRA300.prod.assim.inst6_3d_ana_Nv.20150613.hdf.nc4"

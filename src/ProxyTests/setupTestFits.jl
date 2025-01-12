@@ -7,7 +7,7 @@ using NCDatasets, Polynomials, LinearAlgebra, SpecialPolynomials, Plots
 co2, ch4, h2o, hdo, n2o, co, co2_iso2, c2h6 = CarbonI.loadXSModels();
 
 # Read Solar Spectra (not used for the simple tests)
-# include("src/readSun.jl")
+#include(joinpath(@__DIR__, "readSun.jl"))
 indHR = 1:70000
 indLR = 1:150
 # Read non-scattering forward model
