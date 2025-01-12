@@ -15,12 +15,17 @@ using DocStringExtensions      # Documentation
 using CSV
 using DelimitedFiles
 using ForwardDiff, DiffResults
-using Pkg.Artifacts
+using Artifacts
 
 
 include("tools.jl")
-const xs_folder = get_artifacts_path("cross_sections")
-const merra_folder = get_artifacts_path("merra")
+
+artifact_file=joinpath(dirname(pathof(CarbonI)), "..", "Artifacts.toml")
+xs_folder = artifact_path(artifact_hash("cross_sections", artifact_file))
+merra_folder = artifact_path(artifact_hash("merra", artifact_file))
+solar_file = joinpath(dirname(pathof(CarbonI)), "..", "data", "solar_irr.nc")
+
+
 include("priorCovariances.jl")
 include("instrument_shapes.jl")
 include("forwardModel.jl")

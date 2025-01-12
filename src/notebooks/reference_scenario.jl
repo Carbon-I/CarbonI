@@ -31,26 +31,29 @@ end
 	
 
 # ╔═╡ 016ec9e4-a7a7-4d62-a666-7bc1d55d36ac
-include("src/forwardModel.jl")
+include(joinpath(dirname(pathof(CarbonI)), "forwardModel.jl"))
 
 # ╔═╡ ca415390-fbb1-4812-8562-1130cae62fc2
 plotly();
 
 # ╔═╡ b298729a-0452-41d2-902d-9be8c0efdc6b
 begin
-	DS = Dataset("data/solar_irr.nc")
+	DS = Dataset(CarbonI.solar_file)
 	wlSol = 1e3*DS["wl"][:]
 	solar_irr = 1e3*DS["solar_irr"][:] # convert to mW/m2/nm
 	close(DS)
 	
-	DS = Dataset("data/reflectance_cube_all_1nm_from450nm.h5")
-	r = DS["reflectance_cube"][:]
-	close(DS)
+	#DS = Dataset("data/reflectance_cube_all_1nm_from450nm.h5")
+	#r = DS["reflectance_cube"][:]
+	#close(DS)
 end
+
+# ╔═╡ 6bde6a7e-22cb-44eb-ab02-75ef169feb2e
+
 
 # ╔═╡ a6da19ca-6bc8-4ac7-8b10-66a041a9cf22
 # Load some profile from MERRA:
-MD = CarbonI.merra_folder*"/MERRA2_300.tavg3_3d_asm_Nv.20100610.nc4"
+MD = joinpath(CarbonI.merra_folder, "MERRA2_300.tavg3_3d_asm_Nv.20100610.nc4")
 
 # ╔═╡ cf06e4b3-4149-422a-9dc9-76a76e2d0b37
 # Choose spot in the Amazon (latitude)
@@ -252,7 +255,7 @@ sza = 30
 
 # ╔═╡ cabefd7a-1d62-478e-a108-77914078b938
 # Load tropical albedo
-clima_alb = readdlm("data/albedo.csv",',', skipstart=1);
+clima_alb = readdlm(joinpath(dirname(pathof(CarbonI)), "..", "data", "albedo.csv"),',', skipstart=1);
 
 # ╔═╡ 82179d5c-2c9f-4671-b6f9-e0a61a113527
 # Generate albedo function generator
@@ -379,6 +382,7 @@ rel_ch4_proxy_error_400_CBE = sqrt((n2o_error / sqrt(11.5) / sqrt(400/300) / 330
 # ╟─5b2c23a7-e8cb-4259-9c9b-67a6fbb439e3
 # ╠═ca415390-fbb1-4812-8562-1130cae62fc2
 # ╠═b298729a-0452-41d2-902d-9be8c0efdc6b
+# ╠═6bde6a7e-22cb-44eb-ab02-75ef169feb2e
 # ╠═016ec9e4-a7a7-4d62-a666-7bc1d55d36ac
 # ╠═a6da19ca-6bc8-4ac7-8b10-66a041a9cf22
 # ╠═cf06e4b3-4149-422a-9dc9-76a76e2d0b37
