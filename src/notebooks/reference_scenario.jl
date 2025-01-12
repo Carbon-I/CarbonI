@@ -53,7 +53,7 @@ end
 
 # ╔═╡ a6da19ca-6bc8-4ac7-8b10-66a041a9cf22
 # Load some profile from MERRA:
-MD = joinpath(CarbonI.merra_folder, "MERRA2_300.tavg3_3d_asm_Nv.20100610.nc4")
+MD = CarbonI.default_merra_file
 
 # ╔═╡ cf06e4b3-4149-422a-9dc9-76a76e2d0b37
 # Choose spot in the Amazon (latitude)

@@ -11,7 +11,7 @@ include(joinpath(@__DIR__, "readSun.jl"))
 include(joinpath(@__DIR__, "forwardModel.jl"))
 
 # Load some profile:
-MD = artifact"merra"*"/MERRA2_300.tavg3_3d_asm_Nv.20100610.nc4"
+MD = CarbonI.default_merra_file
 #MD = "./MERRA2_400.tavg3_3d_asm_Np.20200610.nc4"
 hitran_array = (co2, h2o, ch4, co, n2o, hdo, co2_iso2, c2h6);
 

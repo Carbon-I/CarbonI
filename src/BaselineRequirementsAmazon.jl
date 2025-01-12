@@ -12,7 +12,7 @@ include(joinpath(@__DIR__, "readSun.jl"))
 include(joinpath(@__DIR__, "forwardModel.jl"))
 
 # Load some profile:
-MD = joinpath(CarbonI.merra_folder, "MERRA2_300.tavg3_3d_asm_Nv.20100610.nc4")
+MD = CarbonI.default_merra_file
 hitran_array = (co2, h2o, ch4, co, n2o, hdo, co2_iso2, c2h6);
 
 # What latitude do we want? Take Amazon with lots of H2O for that requirement
