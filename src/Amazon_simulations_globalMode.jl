@@ -4,15 +4,15 @@ using ImageFiltering, DiffResults, ForwardDiff, InstrumentOperator, Unitful, Int
 using NCDatasets, Polynomials, LinearAlgebra, SpecialPolynomials, DelimitedFiles
 using CairoMakie
 # Load spectroscopies:
-co2, ch4, h2o, hdo, n2o, co, co2_iso2, c2h6 = CarbonI.loadXSModels(artifact"cross_sections");
+co2, ch4, h2o, hdo, n2o, co, co2_iso2, c2h6 = CarbonI.loadXSModels();
 
-include("src/readSun.jl")
-#include("src/readSun_DC.jl")
-include("src/forwardModel.jl")
+#include(joinpath(@__DIR__, "readSun_DC.jl"))
+include(joinpath(@__DIR__, "readSun.jl"))
+include(joinpath(@__DIR__, "forwardModel.jl"))
 
 # Load some profile:
 MD = "/net/fluo/data1/ftp/XYZT_ESE156/Data/MERRA300.prod.assim.inst6_3d_ana_Nv.20150613.hdf.nc4"
-MD = "./MERRA2_300.tavg3_3d_asm_Nv.20100610.nc4"
+MD = CarbonI.default_merra_file
 #MD = "./MERRA2_400.tavg3_3d_asm_Np.20200610.nc4"
 hitran_array = (co2, h2o, ch4, co, n2o, hdo, co2_iso2, c2h6);
 
@@ -88,7 +88,7 @@ readout_noise = 70.0    # Readout noise
 dark_current = 10e3u"1/s" # Dark current
 
 ins = InstrumentOperator.createGratingNoiseModel(ET, Pitch,FPA_QE, Bench_efficiency, Fnumber, SSI, (readout_noise), dark_current);
-clima_alb = readdlm("data/albedo.csv",',', skipstart=1)
+clima_alb = readdlm(CarbonI.albedo_file,',', skipstart=1)
 #soil = CubicSplineInterpolation(450:2500,r[:,140], extrapolation_bc=Interpolations.Flat());
 soil = CubicSplineInterpolation(300:2400,clima_alb[:,2]/1.16, extrapolation_bc=Interpolations.Flat());
 solarIrr = sol(wl);

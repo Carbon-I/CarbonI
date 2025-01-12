@@ -9,7 +9,7 @@ function get_artifacts_path(name)
 end
 #ensure_artifact_installed("cross_sections", find_artifacts_toml(@__DIR__), quiet_download = true)
 # Load cross section tables (can toggle to also use ABSCO, doesn't cover full range though)
-function loadXSModels(path)
+function loadXSModels(path=CarbonI.xs_folder)
     co2 = load_interpolation_model(path*"/co2_model.jld2")
     co2_iso2 = load_interpolation_model(path*"/co2_model_iso2.jld2")
     # Commenting out the ABSCO CO2 table for now, as I want 13CO2 and CO2 in the same table

@@ -11,7 +11,8 @@ using NCDatasets, Polynomials, LinearAlgebra, SpecialPolynomials
 co2, ch4, h2o, hdo, n2o, co, co2_iso2, c2h6 = CarbonI.loadXSModels();
 
 # Read Solar Spectra (not used for the simple tests)
-# include("src/readSun.jl")
+#include(joinpath(@__DIR__, "readSun.jl"))
+
 # Define wavelength grid for forward model:
 Δwl = 0.004
 wl = 2030:Δwl:2390
@@ -25,7 +26,7 @@ indLR = 7+32:160
 indHR = findall(wl_ci[indLR[1]]-5 .< reverse(wl) .< wl_ci[indLR[end]]+5)
 indHR2 = findall(wl_ci[indLR[1]]-5 .< wl .< wl_ci[indLR[end]]+5)
 # Read non-scattering forward model
-include("src/forwardModel.jl")
+include(joinpath(@__DIR__, "forwardModel.jl"))
 
 # Define species in the state vector:
 hitran_array = (co2, n2o, co2_iso2, ch4);

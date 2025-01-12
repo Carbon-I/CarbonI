@@ -70,7 +70,7 @@ function createFitParams(indLR, setupFile, n_layers, gas_array)
     index_array = [name_to_index[name] for name in gas_array]
 
     # Load spectroscopies:
-    co2, ch4, h2o, hdo, n2o, co, c2h6, co2_iso2 = CarbonI.loadXSModels(artifact"cross_sections");
+    co2, ch4, h2o, hdo, n2o, co, c2h6, co2_iso2 = CarbonI.loadXSModels();
 
     # Define wavelength grid for forward model:
     Δwl = 0.004

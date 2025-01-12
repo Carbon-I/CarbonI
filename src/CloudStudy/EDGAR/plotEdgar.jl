@@ -2,7 +2,8 @@ using XLSX
 using DataFrames
 using Plots
 
-include("src/Plots/CI_colors.jl")
+include(joinpath(@__DIR__, "Plots", "CI_colors.jl"))
+
 # Load the Excel file
 file_path = "data/edgar/EDGAR_CH4_1970_2023.xlsx"
 file_path_co2  = "data/edgar/IEA_EDGAR_CO2_1970_2023.xlsx"
