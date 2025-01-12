@@ -47,7 +47,7 @@ end
 
 
 
-clima_alb = readdlm("data/albedo.csv",',', skipstart=1)
+clima_alb = readdlm(CarbonI.albedo_file,',', skipstart=1)
 modis_limits = [2105.0,2155.0];
 
 Plots.plot(clima_alb[:,1],clima[:,2])
