@@ -87,7 +87,7 @@ readout_noise = 100.0    # Readout noise
 dark_current = 10e3u"1/s" # Dark current
 
 ins = InstrumentOperator.createGratingNoiseModel(ET, Pitch,FPA_QE, Bench_efficiency, Fnumber, SSI, (readout_noise), dark_current);
-clima_alb = readdlm("data/albedo.csv",',', skipstart=1)
+clima_alb = readdlm(CarbonI.albedo_file,',', skipstart=1)
 #soil = CubicSplineInterpolation(450:2500,r[:,140], extrapolation_bc=Interpolations.Flat());
 soil = CubicSplineInterpolation(300:2400,clima_alb[:,2]/1.16, extrapolation_bc=Interpolations.Flat());
 solarIrr = sol(wl);

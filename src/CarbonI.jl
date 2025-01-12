@@ -24,6 +24,7 @@ artifact_file=joinpath(dirname(pathof(CarbonI)), "..", "Artifacts.toml")
 xs_folder = artifact_path(artifact_hash("cross_sections", artifact_file))
 merra_folder = artifact_path(artifact_hash("merra", artifact_file))
 solar_file = joinpath(dirname(pathof(CarbonI)), "..", "data", "solar_irr.nc")
+albedo_file = joinpath(dirname(pathof(CarbonI)), "..", "data", "albedo.csv")
 
 
 include("priorCovariances.jl")

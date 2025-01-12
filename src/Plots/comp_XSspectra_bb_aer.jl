@@ -6,7 +6,7 @@ using Distributions, CairoMakie, ColorSchemes, LaTeXStrings
 using vSmartMOM
 using vSmartMOM.Scattering
 
-clima_alb = readdlm("data/albedo.csv",',', skipstart=1)
+clima_alb = readdlm(CarbonI.albedo_file,',', skipstart=1)
 
 FT = Float64
 # Output parameters

@@ -255,7 +255,7 @@ sza = 30
 
 # ╔═╡ cabefd7a-1d62-478e-a108-77914078b938
 # Load tropical albedo
-clima_alb = readdlm(joinpath(dirname(pathof(CarbonI)), "..", "data", "albedo.csv"),',', skipstart=1);
+clima_alb = readdlm(CarbonI.albedo_file,',', skipstart=1);
 
 # ╔═╡ 82179d5c-2c9f-4671-b6f9-e0a61a113527
 # Generate albedo function generator

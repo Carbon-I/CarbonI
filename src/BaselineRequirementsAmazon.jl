@@ -7,14 +7,12 @@ using Artifacts, LazyArtifacts
 
 co2, ch4, h2o, hdo, n2o, co, co2_iso2, c2h6 = CarbonI.loadXSModels(CarbonI.xs_folder);
 
-#include("src/readSun_DC.jl")
+#include(joinpath(@__DIR__, "readSun_DC.jl"))
 include(joinpath(@__DIR__, "readSun.jl"))
 include(joinpath(@__DIR__, "forwardModel.jl"))
 
 # Load some profile:
-MD = joinpath(CarbonI.merra_folder, "/MERRA2_300.tavg3_3d_asm_Nv.20100610.nc4")
-
-#MD = "./MERRA2_400.tavg3_3d_asm_Np.20200610.nc4"
+MD = joinpath(CarbonI.merra_folder, "MERRA2_300.tavg3_3d_asm_Nv.20100610.nc4")
 hitran_array = (co2, h2o, ch4, co, n2o, hdo, co2_iso2, c2h6);
 
 # What latitude do we want? Take Amazon with lots of H2O for that requirement
@@ -92,7 +90,7 @@ readout_noise = 100.0    # Readout noise (100 CBE, 120 required
 dark_current = 5e3u"1/s" # Dark current
 
 ins = InstrumentOperator.createGratingNoiseModel(ET, Pitch,FPA_QE, Bench_efficiency, Fnumber, SSI, (readout_noise), dark_current);
-clima_alb = readdlm("data/albedo.csv",',', skipstart=1)
+clima_alb = readdlm(CarbonI.albedo_file,',', skipstart=1)
 #soil = CubicSplineInterpolation(450:2500,r[:,140], extrapolation_bc=Interpolations.Flat());
 soil = CubicSplineInterpolation(300:2400,clima_alb[:,2]/1.16, extrapolation_bc=Interpolations.Flat());
 solarIrr = sol(wl);
