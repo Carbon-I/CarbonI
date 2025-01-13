@@ -6,8 +6,11 @@ Base.@kwdef mutable struct InstrumentSpecs
     # not expected to change
     ET::Float64 = 44.0u"ms"
     SSI::Float64 = 1.4u"nm"
-    Pitch::Float64 = 18.0u"um"
+    Pitch::Float64 = 18.0u"μm"
     Fnumber::Float64 = 2.2
+    Δwl::Float64 = 0.005;
+    wl = 2035:Δwl:2385
+
 
     ### Dependent on build outcome; each has a 
     # required value and a current best estimate (CBE)
