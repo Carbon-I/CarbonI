@@ -1,52 +1,39 @@
 
 using Unitful
 
-
 Base.@kwdef mutable struct InstrumentSpecs
-
     ### Constants; these are design characteristics
     # not expected to change
-    ET            # Exposure time
-	SSI           # Spectral resolution
-	Pitch         # Pixel pitch
-	Fnumber       # F-number
+    ET::Float64 = 44.0u"ms"
+    SSI::Float64 = 1.4u"nm"
+    Pitch::Float64 = 18.0u"um"
+    Fnumber::Float64 = 2.2
 
     ### Dependent on build outcome; each has a 
     # required value and a current best estimate (CBE)
-    FPA_quantum_efficiency
-    bench_efficiency
-    readout_noise
+    FPA_quantum_efficiency::Float64 
+    bench_efficiency::Float64
+    readout_noise::Float64
     dark_current
-
 end
 
 
-# Provide an optional constuctor with the constant 
-# values locked, for convenience
-Base.@kwdef mutable struct InstrumentSpecs
-    ET = 44.0u"ms",
-    SSI = (2*0.7)u"nm",
-    Pitch = 18.0u"μm",
-    Fnumber = 2.2,
-    FPA_quantum_efficiency = a,
-    bench_efficiency = b,
-    readout_noise = c,
-    dark_current = d
-end
-
-function requirement_specs()
+function requirement_instrument()
     inst = InstrumentSpecs(
-        FPA_quantum_efficiency = 0.85,
+        FPA_quantum_efficiency = 0.80,
         bench_efficiency = 0.72,
-        readout_noise = 70.0,
-        dark_current = 100.0u"1/s"
+        readout_noise = 120,
+        dark_current = 10e3u"1/s"
     )
     return inst
 end
 
-function cbe_specs()
-    inst = InstrumentSpecs
-    inst.bench_efficiency = 0.72
-    inst.FPA_quantum_efficiency = 0.85
+function cbe_instrument()
+    inst = InstrumentSpecs(
+        FPA_quantum_efficiency = 0.85,
+        bench_efficiency = 0.72,
+        readout_noise = 100.0,
+        dark_current = 5e3u"1/s"
+    )
     return inst
 end
