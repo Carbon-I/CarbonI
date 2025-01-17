@@ -5,15 +5,14 @@ using NCDatasets, Polynomials, LinearAlgebra, SpecialPolynomials
 # Load spectroscopies:
 co2, ch4, h2o, hdo, n2o, co, co2_iso2, c2h6 = CarbonI.loadXSModels();
 
-include("src/readSun.jl")
-#include("src/readSun_DC.jl")
-include("src/forwardModel.jl")
+#include(joinpath(@__DIR__, "readSun_DC.jl"))
+include(joinpath(@__DIR__, "readSun.jl"))
+include(joinpath(@__DIR__, "forwardModel.jl"))
 
 # Load some profile:
 #MD = "/net/fluo/data1/ftp/XYZT_ESE156/Data/MERRA300.prod.assim.inst6_3d_ana_Nv.20150613.hdf.nc4"
 #MD = "/home/cfranken/for-christian/MERRA2_400.tavg3_3d_asm_Nv.20170601.nc4"
-MD = "MERRA2_400.tavg3_3d_asm_Nv.20200610.nc4"
-MD = "./MERRA2_300.tavg3_3d_asm_Nv.20100610.nc4"
+MD = CarbonI.default_merra_file
 hitran_array = (co2, h2o, ch4, co, n2o, hdo, co2_iso2, c2h6);
 
 

@@ -1,4 +1,4 @@
-using SpecialPolynomials, SparseArrays
+using SpecialPolynomials#, SparseArrays
 
 function forward_model_x(𝐱::AbstractArray{FT} ;sun = solarIrr, instrument=lociBox, sza=sza, vza = 0.0, profile=profile,σ_matrix=σ_matrix, wl=wl) where {FT}
     dims = size(σ_matrix)
@@ -135,7 +135,7 @@ function forward_model_x_(𝐱::AbstractArray{FT} ;sun = solarIrr,reflectance=re
     #@show size(vmrs)
     # Air Mass Factor
     AMF = 1/cosd(sza) + 1/cosd(vza)
-    @show sza
+    #@show sza
     # Total sum of τ
     ∑τ = zeros(FT,size(σ_matrix,1))
 	#@show size(vmrs,2)

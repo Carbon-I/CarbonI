@@ -6,7 +6,7 @@ using Distributions, CairoMakie, ColorSchemes, LaTeXStrings
 using vSmartMOM
 using vSmartMOM.Scattering
 
-clima_alb = readdlm("data/albedo.csv",',', skipstart=1)
+clima_alb = readdlm(CarbonI.albedo_file,',', skipstart=1)
 
 FT = Float64
 # Output parameters
@@ -130,7 +130,8 @@ for iμ = 1:length(vμ)
 end
 
 CS = ColorSchemes.seaborn_colorblind
-include("src/Plots/CI_colors.jl")
+include(joinpath(@__DIR__, "Plots", "CI_colors.jl"))
+
 
 aer_size = 0.01:0.001:3
 n = 8 #normalization wavelength

@@ -33,7 +33,7 @@ cf_mean_wet = [mean(filter(is_in_wet,d).cloud_free_fraction02) for d in datasets
 percentiles_wet = mapreduce(permutedims, vcat, med_wet)
 percentiles_dry = mapreduce(permutedims, vcat, med_dry)
 
-include("src/Plots/CI_colors.jl")
+include(joinpath(@__DIR__, "Plots", "CI_colors.jl"))
 
 cs = readdlm("data/tropics_month_res_stats.csv", ',',skipstart=1)
 

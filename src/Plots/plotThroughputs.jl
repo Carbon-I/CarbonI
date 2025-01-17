@@ -2,7 +2,7 @@ using DelimitedFiles, CairoMakie, Statistics, LaTeXStrings
 using CSV, DataFrames, Glob, Statistics,  StatsBase
 using Makie, CairoMakie
 
-include("src/Plots/CI_colors.jl")
+include(joinpath(@__DIR__, "Plots", "CI_colors.jl"))
 
 T = readdlm("data/throughput_comparison.txt")
 #Telescope (3 reflections)	Bandpass Filter	Dyson Lens	Grating	QE	System Throughput w/o QE	Total Throughput

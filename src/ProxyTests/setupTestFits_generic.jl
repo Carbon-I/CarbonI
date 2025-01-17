@@ -22,7 +22,7 @@ struct FitParams{FT}
     "Vertical Column Density (Dry)"
     vcd_dry::Array{FT,1}
     "Cross Sections"
-    σ_matrix::Array{Float64,3}
+    σ_matrix::Array{FT,3}
     "Gas Profiles"
     gasProfiles::Array{Array{FT,1},1}
     "Atmospheric Profile"

@@ -10,14 +10,17 @@ n_layers = 10
 indLR1 = 8:260
 #indLR = 287:410
 #indLR = 7:410
+# CLS = correlation length scale
 cls        = Dict(gas => 1550.0 for gas in gas_array1)
 cls["h2o"] = 150.0
 cls["co2"] = 150.0
 cls["hdo"] = 150.0
+# Relative error of trace gases (0.15=15%, used everywhere)
 rel_errors = Dict(gas => 0.15 for gas in gas_array1)
 rel_errors["h2o"] = 0.15
 rel_errors["hdo"] = 0.15
 rel_errors["n2o"] = 0.15
+# PBL error (100=amplify previous noise by this factor for the PBL (boundary layer)
 pbl_error = 100.0
 
 ############################################################################

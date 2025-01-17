@@ -1,16 +1,27 @@
+
+#ensure_artifact_installed("cross_sections", find_artifacts_toml(@__DIR__), quiet_download = true)
+function get_artifacts_path(name)
+    # This returns the full path to the current Project.toml or parent environment file
+    proj_toml = Base.current_project()
+    # Extract just the directory part
+    proj_dir = dirname(proj_toml)
+    return ensure_artifact_installed(name, find_artifacts_toml(proj_dir), quiet_download = true)
+end
+#ensure_artifact_installed("cross_sections", find_artifacts_toml(@__DIR__), quiet_download = true)
 # Load cross section tables (can toggle to also use ABSCO, doesn't cover full range though)
-function loadXSModels()
-    co2 = load_interpolation_model("data/co2_model.jld2")
-    co2_iso2 = load_interpolation_model("data/co2_model_iso2.jld2")
-    co2_ = load_interpolation_model("/net/fluo/data3/data/FluoData1/projects/ABSCO_CS_Database/v5.2_final/sco2_v52.jld2")
-    etp0 = extrapolate(co2_.itp, 0.0)
-    co2__ = InterpolationModel( etp0, co2_.mol, co2_.iso, co2_.ν_grid, co2_.p_grid, co2_.t_grid);
-    ch4 = load_interpolation_model("data/ch4_model.jld2")
-    h2o = load_interpolation_model("data/h2o_model_tccon.jld2")
-    hdo = load_interpolation_model("data/hdo_model.jld2")
-    n2o = load_interpolation_model("data/n2o_model.jld2")
-    co  = load_interpolation_model("data/co_model.jld2")
-    c2h6  = load_interpolation_model("data/c2h6_model.jld2")
+function loadXSModels(path=CarbonI.xs_folder)
+    co2 = load_interpolation_model(path*"/co2_model.jld2")
+    co2_iso2 = load_interpolation_model(path*"/co2_model_iso2.jld2")
+    # Commenting out the ABSCO CO2 table for now, as I want 13CO2 and CO2 in the same table
+    #co2_ = load_interpolation_model(artifact"cross_sections"*"/sco2_v52.jld2")
+    #etp0 = extrapolate(co2_.itp, 0.0)
+    #co2__ = InterpolationModel( etp0, co2_.mol, co2_.iso, co2_.ν_grid, co2_.p_grid, co2_.t_grid);
+    ch4 = load_interpolation_model(path*"/ch4_model.jld2")
+    h2o = load_interpolation_model(path*"/h2o_model_tccon.jld2")
+    hdo = load_interpolation_model(path*"/hdo_model.jld2")
+    n2o = load_interpolation_model(path*"/n2o_model.jld2")
+    co  = load_interpolation_model(path*"/co_model.jld2")
+    c2h6  = load_interpolation_model(path*"/c2h6_model.jld2")
     #return co2__, ch4, h2o, hdo, n2o, co, co2_iso2, c2h6
     return co2, ch4, h2o, hdo, n2o, co, co2_iso2, c2h6
 end
@@ -277,21 +288,21 @@ function reduce_profile(n::Int, profile::AtmosphericProfile{FT}, σ_matrix, gasP
     for i = 1:n
         ind = findall(a[i] .< profile.p .<= a[i + 1]);
         push!(indis,ind)
-        @show ind
+        #@show ind
         h = profile.vcd_dry[ind]
         h ./= sum(h)
         # This has to be weighted by vcd_dry!
         for iGas=1:dims[3]
-            @show iGas, ind
-            @show size(gasProfiles[iGas])
+            #@show iGas, ind
+            #@show size(gasProfiles[iGas])
             # Weigh by gas VCD high res profile:
             gasP = gasProfiles[iGas][ind] .* profile.vcd_dry[ind]
             gas_vmr = sum(gasP)/sum(profile.vcd_dry[ind])
             gasProfile_low_res[iGas][i] = gas_vmr
             gasP ./= sum(gasP)
-            @show gas_vmr, mean(gasProfiles[iGas][ind])
+            #@show gas_vmr, mean(gasProfiles[iGas][ind])
             σ_matrix_lr[:,i,iGas] = σ_matrix[:,ind,iGas] *gasP
-            @show sum(gasP)
+            #@show sum(gasP)
         end
         p_levels[i] = a[i]
         p_levels[i + 1] = a[i+1]
@@ -383,11 +394,11 @@ function reduce_pressure_levels(pressures, n::Int)
         #@show diff, sorted_pressures
         indi = findall(diff .>= 0)
         closest_index = indi[1]
-        @show i, target_pressures[i]/100, closest_index
+        #@show i, target_pressures[i]/100, closest_index
         new_pressures[i] = sorted_pressures[closest_index]
-        @show new_pressures[i]
+        #@show new_pressures[i]
     end
-    @show new_pressures
+    #@show new_pressures
     # Remove duplicates in case multiple target pressures are closest to the same pressure level
     new_pressures = unique(new_pressures)
 

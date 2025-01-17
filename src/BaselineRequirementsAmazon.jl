@@ -1,33 +1,35 @@
-
 using CarbonI
 using ImageFiltering, DiffResults, ForwardDiff, InstrumentOperator, Unitful, Interpolations
 using NCDatasets, Polynomials, LinearAlgebra, SpecialPolynomials, DelimitedFiles
 using CairoMakie
+using Artifacts, LazyArtifacts
 # Load spectroscopies:
+
 co2, ch4, h2o, hdo, n2o, co, co2_iso2, c2h6 = CarbonI.loadXSModels();
 
-include("src/readSun.jl")
-#include("src/readSun_DC.jl")
-include("src/forwardModel.jl")
+#include(joinpath(@__DIR__, "readSun_DC.jl"))
+include(joinpath(@__DIR__, "readSun.jl"))
+include(joinpath(@__DIR__, "forwardModel.jl"))
 
 # Load some profile:
-MD = "/net/fluo/data1/ftp/XYZT_ESE156/Data/MERRA300.prod.assim.inst6_3d_ana_Nv.20150613.hdf.nc4"
-MD = "./MERRA2_300.tavg3_3d_asm_Nv.20100610.nc4"
-#MD = "./MERRA2_400.tavg3_3d_asm_Np.20200610.nc4"
+MD = CarbonI.default_merra_file
 hitran_array = (co2, h2o, ch4, co, n2o, hdo, co2_iso2, c2h6);
-
 
 # What latitude do we want? Take Amazon with lots of H2O for that requirement
 myLat = 0.0
 myLon = -62
+# Read in high resolution profile:
 profile_hr = CarbonI.read_atmos_profile_MERRA2(MD, myLat, myLon, 7);
 
-# Reduce dimensions, group layers together to get roughly layers of equal pressure difference:
+# Reduce dimensions, group layers together to get  layers of equal pressure difference:
 n_layers = 10
 
+# Define wavelength grid:
 Δwl = 0.01
 wl = 2000:Δwl:2400
+# Precompute the cross sections:
 σ_matrix_hr = CarbonI.compute_profile_crossSections(profile_hr, hitran_array , wl);
+
 nL = length(profile_hr.T)
 	
 vmr_co2 = zeros(nL) .+ 407e-6
@@ -42,7 +44,8 @@ vmr_c2h6 = zeros(nL) .+ 1.0e-9
 vmrs = [vmr_co2, vmr_h2o, vmr_ch4,vmr_co, vmr_n2o, vmr_hdo, vmr_co2, vmr_c2h6];
 
 sol  = CubicSplineInterpolation(range(wlSol[1],wlSol[end], length=length(wlSol)),solar_irr, extrapolation_bc=Interpolations.Flat());
-# Reduce to fewer dimensions:
+
+# Reduce profile and cross sections to fewer dimensions:
 profile, σ_matrix, indis, gasProfiles = CarbonI.reduce_profile(n_layers, profile_hr, σ_matrix_hr,vmrs);
 
 
@@ -87,7 +90,7 @@ readout_noise = 100.0    # Readout noise (100 CBE, 120 required
 dark_current = 5e3u"1/s" # Dark current
 
 ins = InstrumentOperator.createGratingNoiseModel(ET, Pitch,FPA_QE, Bench_efficiency, Fnumber, SSI, (readout_noise), dark_current);
-clima_alb = readdlm("data/albedo.csv",',', skipstart=1)
+clima_alb = readdlm(CarbonI.albedo_file,',', skipstart=1)
 #soil = CubicSplineInterpolation(450:2500,r[:,140], extrapolation_bc=Interpolations.Flat());
 soil = CubicSplineInterpolation(300:2400,clima_alb[:,2]/1.16, extrapolation_bc=Interpolations.Flat());
 solarIrr = sol(wl);
