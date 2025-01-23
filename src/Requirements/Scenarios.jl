@@ -1,31 +1,37 @@
 
 using Unitful
+using CarbonI
 
 Base.@kwdef mutable struct Scenario
-    ### Constants; these are design characteristics
-    # not expected to change
+    ### Characteristics of the scenario 
     lat::Float64
     lon::Float64
+    sza::Float64
+    profile_hr
 
-    ### Dependent on build outcome; each has a 
-    # required value and a current best estimate (CBE)
 end
 
 
 function reference_scenario()
-    ref = Scenario(
-        lat = 0.0,
-        lon = -62.0
-    )
-    return ref
+    lat = 30.0
+    lon = -62.0
+    sza = 30.0
+    profile_hr = CarbonI.read_atmos_profile_MERRA2(CarbonI.default_merra_file, lat, lon, 7);
+    sce = Scenario(lat=lat, lon=lon, sza=sza, profile_hr=profile_hr)
+    return sce
 end
 
-function cbe_instrument()
-    inst = Scenario(
-        FPA_quantum_efficiency = 0.85,
-        bench_efficiency = 0.72,
-        readout_noise = 100.0,
-        dark_current = 5e3u"1/s"
-    )
-    return inst
+function stressing_scenario()
+    lat = 0.0
+    lon = 0.0
+    sza = 0.0
+    profile_hr = CarbonI.read_atmos_profile_MERRA2(CarbonI.default_merra_file, lat, lon, 7);
+    sce = Scenario(lat=lat, lon=lon, sza=sza, profile_hr=profile_hr)
+    return sce
+end
+
+function generic_scenario(lat::Float64, lon::Float64, sza::Float64)
+    profile_hr = CarbonI.read_atmos_profile_MERRA2(CarbonI.default_merra_file, lat, lon, 7);
+    sce = Scenario(lat=lat, lon=lon, sza=sza, profile_hr=profile_hr)
+    return sce
 end
