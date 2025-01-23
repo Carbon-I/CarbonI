@@ -34,5 +34,6 @@ include("forwardModel.jl")
 include("GeosChem/GeosChemReader.jl")
 include("GeosChem/tools.jl")
 include("Requirements/Instrument.jl")
+include("Requirements/Scenarios.jl")
 
 end # module CarbonI
