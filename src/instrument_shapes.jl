@@ -1,17 +1,19 @@
-function create_carbonI_conv_matrix(wl::StepRangeLen{FT}) where FT
+function create_carbonI_conv_matrix(modelling_wl::StepRangeLen{FT}, instrument_wl; FWHM::Float64=2.2, SSI=0.7, verbose_return::Bool=false) where FT
     # Define a Fixed instrument:
-    FWHM  = 2.2  # 
-    SSI  = 0.7
-    Δwl = wl.step.hi
-    kern1 = CarbonI.box_kernel(2*SSI, Δwl)
+    Δwl = modelling_wl.step.hi
+    kern1 = CarbonI.box_kernel(2*ustrip(SSI), Δwl)
     kern2 = CarbonI.gaussian_kernel(FWHM, Δwl)
     kernf = imfilter(kern1, kern2)
     
     # Hardcoded for Carbon-I
-    lociBox = CarbonI.KernelInstrument(kernf, collect(2035:SSI:2380));
+    lociBox = CarbonI.KernelInstrument(kernf, instrument_wl);
     # Generate convolution matrix:
-    cM = CarbonI.generate_conv_matrix(lociBox,wl, Δwl)
-    return cM, lociBox.ν_out
+    cM = CarbonI.generate_conv_matrix(lociBox,modelling_wl, Δwl)
+    if verbose_return
+        return cM, lociBox.ν_out, lociBox
+    else
+        return cM, lociBox.ν_out
+    end
 end
 
 function create_carbonI_conv_matrix_cbe(wl::StepRangeLen{FT}) where FT
