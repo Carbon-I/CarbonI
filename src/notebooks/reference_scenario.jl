@@ -12,12 +12,15 @@ begin
 	using LazyArtifacts
 end
 
-# ╔═╡ 5b2c23a7-e8cb-4259-9c9b-67a6fbb439e3
+# ╔═╡ b71f5796-ff9d-4a0c-b973-d4de8463bdfe
 using Revise
 
 # ╔═╡ 19d32bc0-8a70-4f66-a0a5-7054799df57c
 # Import CarbonI Source Project here
-using CarbonI
+begin
+	using CarbonI 
+	include(joinpath(dirname(pathof(CarbonI)), "forwardModel.jl"))
+end
 
 # ╔═╡ d687e5b4-7bb4-42e0-b150-374e43790254
 begin
@@ -25,16 +28,12 @@ begin
 	using NCDatasets, Polynomials, LinearAlgebra, SpecialPolynomials, DelimitedFiles
 	using Plots
 	using Artifacts
+	using PlutoUI
+	plotly(); 
 	# Load spectroscopies:
 	co2, ch4, h2o, hdo, n2o, co, co2_iso2, c2h6 = CarbonI.loadXSModels();
 end
 	
-
-# ╔═╡ 016ec9e4-a7a7-4d62-a666-7bc1d55d36ac
-include(joinpath(dirname(pathof(CarbonI)), "forwardModel.jl"))
-
-# ╔═╡ ca415390-fbb1-4812-8562-1130cae62fc2
-plotly();
 
 # ╔═╡ b298729a-0452-41d2-902d-9be8c0efdc6b
 begin
@@ -42,129 +41,44 @@ begin
 	wlSol = 1e3*DS["wl"][:]
 	solar_irr = 1e3*DS["solar_irr"][:] # convert to mW/m2/nm
 	close(DS)
-	
+
+	# optionally load a custom reflectance
 	#DS = Dataset("data/reflectance_cube_all_1nm_from450nm.h5")
 	#r = DS["reflectance_cube"][:]
 	#close(DS)
 end
 
-# ╔═╡ 6bde6a7e-22cb-44eb-ab02-75ef169feb2e
+# ╔═╡ 750d6e2c-4b3c-45e8-b65e-f7dfb9de2fa8
 
+scenario = CarbonI.reference_scenario()
 
-# ╔═╡ a6da19ca-6bc8-4ac7-8b10-66a041a9cf22
-# Load some profile from MERRA:
-MD = CarbonI.default_merra_file
+# ╔═╡ 0a785adf-d7d4-4c78-8b66-217bfdea4ee4
+cbe_specs = CarbonI.build_instrument("CBE") 
 
-# ╔═╡ cf06e4b3-4149-422a-9dc9-76a76e2d0b37
-# Choose spot in the Amazon (latitude)
-myLat = 0.0;
-
-# ╔═╡ ff03de75-d086-4eb1-9288-cc4ac30cbd6f
-# Choose spot in the Amazon (longitude)
-myLon = -62
-
-# ╔═╡ 2188edda-48c0-43d2-90d9-89b887cdad9f
-# Read in high resolution profile for the tropics:
-profile_hr = CarbonI.read_atmos_profile_MERRA2(MD, myLat, myLon, 7);
-
-# ╔═╡ 5842480f-50ad-484e-b3c6-d8f5c82a2e70
-# Define high resolution wavelength spacing (in nm)
-Δwl = 0.005;
-
-# ╔═╡ 53b88229-5974-46aa-964f-4abf57673738
-# Define high resolution wavelength array for the RT forward model
-wl = 2035:Δwl:2385;
-
-# ╔═╡ d3fe98ca-5996-4332-aabb-489ced362fa2
-# Instrument Line Shape as Required
-# Create convolution matrix cM and CarbonI sampling grid wl_ci_req
-cM_req, wl_ci = CarbonI.create_carbonI_conv_matrix(wl);
-
-# ╔═╡ 64d02acd-3061-420f-9b46-b151e0052cbc
-# Instrument Line Shape as CBE
-# Create convolution matrix cM and CarbonI sampling grid wl_ci_req
-cM_cbe, _ = CarbonI.create_carbonI_conv_matrix_cbe(wl);
-
-# ╔═╡ 5535969a-ce85-41b8-bb56-722cd67db666
-begin
-	# Define an instrument:
-	# LSF(λ)
-	FWHM  = 2.2  # FWHM  = 2.2 creates an effective FWHM of 2.5nm, i.e. required. (1.5 creates an effective kernel of 1.88)
-	# Spectral Sampling Interval
-	SSI_  = 0.7
-	# Slit blur (2*SSI box)
-	kern1 = CarbonI.box_kernel(2*SSI_, Δwl)
-	# LSF (Gaussian)
-	kern2 = CarbonI.gaussian_kernel(FWHM, Δwl)
-	# Pixel response (1*SSI)
-	kern3 = CarbonI.box_kernel(SSI_, Δwl)
-	
-	# Combine the kernels:
-	kernf = imfilter(imfilter(kern1, kern2), kern3)
-	# Create the instrument response:
-	lociBox = CarbonI.KernelInstrument(kernf, collect(2040:SSI_:2380));
-end
+# ╔═╡ 98395d3e-cfd0-4b3c-b60c-4620f18d7ee3
+req_specs = CarbonI.build_instrument("Requirement")
 
 # ╔═╡ 4106bbff-9a3c-4f93-938d-0f32196a2308
 begin
-	plot(wl .- wl_ci[250], cM_req[250,:], label="Required ILS")
-	plot!(wl .- wl_ci[250], cM_cbe[250,:], label="CBE ILS")
-	xlims!(-4,4); xlabel!("Δwl (nm)")
+	plot(req_specs.modelling_wl .- req_specs.instrument_wl[Int32(round(end/2))], req_specs.convolution_matrix[Int32(round(end/2)),:], label="Requirement")
+	
+	plot!(cbe_specs.modelling_wl .- cbe_specs.instrument_wl[Int32(round(end/2))], cbe_specs.convolution_matrix[Int32(round(end/2)),:], label="CBE")
+	xlims!(-4,4); xlabel!("Δwl (nm)")  
+	title!("Instrument Line Shape")
 end
-
-# ╔═╡ 1fe9f8ac-8442-4e64-8f62-b808553ff20b
-begin
-	# Define the fixed (design choices) for the instrument specs at 400m:
-	ET  = 44.0u"ms"         # Exposure time
-	SSI = (2*0.7)u"nm"      # Spectral resolution
-	Pitch = 18.0u"μm"       # Pixel pitch
-	Fnumber = 2.2           # F-number
-end
-
-# ╔═╡ 3b2e02d0-3199-41e0-bf8a-8750c72bc300
-# CBE FPA quantum efficiency
-cbe_FPA_QE = 0.85;           
-
-# ╔═╡ f28267b7-e910-4396-b9e0-baa9fc7896db
-# required FPA quantum efficiency
-req_FPA_QE = 0.80;           
-
-# ╔═╡ 8ace0941-500e-44f3-ae5f-7386e4f6b638
-# CBE Bench efficiency
-cbe_Bench_efficiency = 0.72; 
-
-# ╔═╡ a5b11d67-e72f-4888-b256-6986bc571833
-# required Bench efficiency
-req_Bench_efficiency = 0.72; 
-
-# ╔═╡ 26fbf305-701b-44ad-b297-91979f6bb46b
-# CBE Readout noise
-cbe_readout_noise = 100;    
-
-# ╔═╡ 6c7dbb18-ce72-4cec-b351-37dcb31a97f5
-# required Readout noise
-req_readout_noise = 120;    
-
-# ╔═╡ cdf91ae6-1197-4328-bbf9-16046d28c05d
-# CBE Dark current
-cbe_dark_current = 5e3u"1/s"; 
-
-# ╔═╡ f9dfd67f-243f-4fc0-b992-4dec962ec668
-# required Dark current
-req_dark_current = 10e3u"1/s"; 
 
 # ╔═╡ 4991e247-1e13-4b93-8257-de777824cc95
 begin
 	hitran_array = (co2, h2o, ch4, co, n2o, hdo, co2_iso2, c2h6);
 	# Precompute the cross sections:
-	σ_matrix_hr = CarbonI.compute_profile_crossSections(profile_hr, hitran_array , wl);
+	σ_matrix_hr = CarbonI.compute_profile_crossSections(scenario.profile_hr, hitran_array , req_specs.modelling_wl);
 	
-	nL = length(profile_hr.T)
+	nL = length(scenario.profile_hr.T)
 		
 	vmr_co2 = zeros(nL) .+ 407e-6
 	vmr_ch4 = zeros(nL) .+ 1.8e-6
 	vmr_ch4[1:3] .= 1.4e-6
-	vmr_h2o = profile_hr.vcd_h2o ./ profile_hr.vcd_dry
+	vmr_h2o = scenario.profile_hr.vcd_h2o ./ scenario.profile_hr.vcd_dry
 	vmr_co  = zeros(nL) .+ 100e-9
 	vmr_n2o = zeros(nL) .+ 337e-9
 	vmr_n2o[1:3] .= 100e-9
@@ -181,10 +95,7 @@ n_layers = 10;
 
 # ╔═╡ 7d44f87d-7851-4224-9712-a37a990f4a0d
 # Reduce profile and cross sections to fewer dimensions:
-profile, σ_matrix, indis, gasProfiles = CarbonI.reduce_profile(n_layers, profile_hr, σ_matrix_hr,vmrs);
-
-# ╔═╡ 4580f545-fc13-4b3a-9ceb-4fd50a8d3451
-#size(σ_matrix)
+profile, σ_matrix, indis, gasProfiles = CarbonI.reduce_profile(n_layers, scenario.profile_hr, σ_matrix_hr,vmrs)
 
 # ╔═╡ 673d3f9b-7a65-4d18-b8e4-b41957e40564
 # Number of Legendre Polynomials for the spectrally resolved albedo term
@@ -249,10 +160,6 @@ begin
 	h_c2h6[71:80] .= ratio;
 end
 
-# ╔═╡ 9117a48c-1a02-4b2a-a8c8-7fb80d981dbf
-# Solar Zenith Angle
-sza = 30
-
 # ╔═╡ cabefd7a-1d62-478e-a108-77914078b938
 # Load tropical albedo
 clima_alb = readdlm(CarbonI.albedo_file,',', skipstart=1);
@@ -262,52 +169,98 @@ clima_alb = readdlm(CarbonI.albedo_file,',', skipstart=1);
 soil = CubicSplineInterpolation(300:2400,clima_alb[:,2]/1.16, extrapolation_bc=Interpolations.Flat());
 
 # ╔═╡ 33f3664a-9423-4293-8c7f-58f5ebc13a30
-# Create solar spectrum at Forward model resolution
-solarIrr = sol(wl);
+begin
+	# Create solar spectrum at Forward model resolution
+	solarIrr_req = sol(req_specs.modelling_wl);
+	
+	# Compute baseline spectrally resolved albedo
+	refl_req   = soil(req_specs.modelling_wl);
 
-# ╔═╡ 21f70ce2-6764-4125-96ea-900f1c106844
-# Compute baseline spectrally resolved albedo
-refl   = soil(wl);
+	# Create solar spectrum at Forward model resolution
+	solarIrr_cbe = sol(cbe_specs.modelling_wl);
+	
+	# Compute baseline spectrally resolved albedo
+	refl_cbe   = soil(cbe_specs.modelling_wl);	
+end
 
 # ╔═╡ 1f68d473-7151-4221-a5b3-1ba65381089a
 # Baseline Reference albedo to the stressing tropical case
-plot(wl_ci, soil(wl_ci), label="Albedo for the stressing tropical case")
-
-# ╔═╡ f431645a-cbf0-43fd-a70b-2dc848f3e2e0
-result = DiffResults.JacobianResult(zeros(length(lociBox.ν_out)),x);
+begin
+	plot(cbe_specs.instrument_wl, soil(cbe_specs.instrument_wl), label="CBE")
+	plot!(req_specs.instrument_wl, soil(req_specs.instrument_wl), label="Requirement")
+	title!("Albedo for the stressing tropical case")
+end
 
 # ╔═╡ acf49d45-a885-4a5a-8fed-b3bd9990117b
 # Run Forward model and Jacobian generation together:
-ForwardDiff.jacobian!(result, forward_model_x_, x);K = DiffResults.jacobian(result);F = DiffResults.value(result);
+begin
+	result_req = DiffResults.JacobianResult(zeros(length(req_specs.instrument_wl)),x);
+	ForwardDiff.jacobian!(result_req, (x) -> 
+		forward_model_x_(x, 
+						 sun=solarIrr_req, 
+						 instrument=req_specs.instrument_kernel,
+			             reflectance=refl_req, 
+			             sza=scenario.sza, 
+			             σ_matrix=σ_matrix, 
+					     profile=profile,
+			             wl=req_specs.modelling_wl), x);
+	K_req = DiffResults.jacobian(result_req);
+	F_req = DiffResults.value(result_req);  
+end
+
+# ╔═╡ 38511b46-3d3a-44a4-a38f-2ee204aeab47
+# Run Forward model and Jacobian generation together:
+begin
+	result_cbe = DiffResults.JacobianResult(zeros(length(cbe_specs.instrument_wl)),x);
+	ForwardDiff.jacobian!(result_cbe, (x) -> 
+		forward_model_x_(x,  
+						 sun=solarIrr_cbe, 
+						 instrument=cbe_specs.instrument_kernel,
+			             reflectance=refl_cbe, 
+			             sza=scenario.sza, 
+			             σ_matrix=σ_matrix, 
+					     profile=profile,
+			             wl=cbe_specs.modelling_wl), x);
+	K_cbe = DiffResults.jacobian(result_cbe);
+	F_cbe = DiffResults.value(result_cbe); 
+end
 
 # ╔═╡ f77a2bdb-a9ae-4f4b-863e-5044b99171f7
-plot(lociBox.ν_out, F, label="Tropical Scenario"); ylabel!("Reflected radiance (mW/m²/nm/sr)")
+begin
+	plot(req_specs.instrument_wl, F_req, label="Requirement"); 
+	ylabel!("Reflected radiance (mW/m²/nm/sr)") 
+	title!("Tropical Scenario")
+	plot!(cbe_specs.instrument_wl, F_cbe, label="CBE"); 
+end
 
 # ╔═╡ 3f52e140-8383-4504-a9c2-33696f218fe8
 # Create an instrument with CBE
-cbe_ins = InstrumentOperator.createGratingNoiseModel(ET, Pitch,cbe_FPA_QE, cbe_Bench_efficiency, Fnumber, SSI, (cbe_readout_noise), cbe_dark_current);
+cbe_ins = InstrumentOperator.createGratingNoiseModel(cbe_specs.ET, cbe_specs.Pitch, cbe_specs.FPA_quantum_efficiency, cbe_specs.bench_efficiency, cbe_specs.Fnumber, cbe_specs.SSI, (cbe_specs.readout_noise), cbe_specs.dark_current);  
 
 # ╔═╡ e3a94fbb-19a6-42fc-b67c-5f82a0960f6c
 # Create an instrument with required parameters
-req_ins = InstrumentOperator.createGratingNoiseModel(ET, Pitch,req_FPA_QE, req_Bench_efficiency, Fnumber, SSI, (req_readout_noise), req_dark_current);
+req_ins = InstrumentOperator.createGratingNoiseModel(req_specs.ET, req_specs.Pitch,req_specs.FPA_quantum_efficiency, req_specs.bench_efficiency, req_specs.Fnumber, req_specs.SSI, (req_specs.readout_noise), req_specs.dark_current);
 
 # ╔═╡ 4d07731c-60ee-4f6e-a7fc-76cf129e1bbf
-# Compute noise equivalent radiance:
-nesr_cbe = InstrumentOperator.noise_equivalent_radiance(cbe_ins, (lociBox.ν_out)u"nm", (F)u"mW/m^2/nm/sr");nesr_cbe_ = nesr_cbe./1u"mW/m^2/nm/sr"
+begin
+	# Compute noise equivalent radiance:
+	nesr_cbe = InstrumentOperator.noise_equivalent_radiance(cbe_ins,(cbe_specs.instrument_wl)u"nm", (F_cbe)u"mW/m^2/nm/sr");
+	nesr_cbe_ = nesr_cbe./1u"mW/m^2/nm/sr"
 
-# ╔═╡ c5b7d02d-8108-4f60-8f0f-a3e38893e22c
-# Compute noise equivalent radiance:
-nesr_req = InstrumentOperator.noise_equivalent_radiance(req_ins, (lociBox.ν_out)u"nm", (F)u"mW/m^2/nm/sr");nesr_req_ = nesr_req./1u"mW/m^2/nm/sr"
+	nesr_req = InstrumentOperator.noise_equivalent_radiance(req_ins,(req_specs.instrument_wl)u"nm", (F_req)u"mW/m^2/nm/sr");
+	nesr_req_ = nesr_req./1u"mW/m^2/nm/sr"
+end
 
 # ╔═╡ 3eb31d88-8582-43ea-a49c-774a7985f770
 begin
-	plot(lociBox.ν_out, nesr_req_, label="Required NESR"); ylabel!("NESR radiance (mW/m²/nm/sr)");
-	plot!(lociBox.ν_out, nesr_cbe_, label="CBE NESR"); ylabel!("NESR radiance (mW/m²/nm/sr)")
+	plot(req_specs.instrument_wl, nesr_req_, label="Requirement"); ylabel!("NESR radiance (mW/m²/nm/sr)");
+	plot!(cbe_specs.instrument_wl, nesr_cbe_, label="CBE"); ylabel!("NESR radiance (mW/m²/nm/sr)")
+	title!("NESR")
 end
 
 # ╔═╡ 0e4f27b0-ae5d-4491-ad93-a1eddf8d6110
 #Compute electrons at the FPA
-e = InstrumentOperator.photons_at_fpa(cbe_ins, (lociBox.ν_out)u"nm", (F)u"mW/m^2/nm/sr");
+#e_cbe = InstrumentOperator.photons_at_fpa(cbe_ins, (cbe_specs.instrument_wl)u"nm", (F_cbe)u"mW/m^2/nm/sr");
 
 # ╔═╡ 7f4d5bf5-3f6e-4e95-a062-2c975eb16535
 # Generate S\_epsilon matrix
@@ -319,15 +272,15 @@ Se_REQ = Diagonal(nesr_req_.^2);
 
 # ╔═╡ 669ede59-e504-48ea-be92-5a1ce7738955
 # Compute the Gain Matrix:
-G = inv(K'inv(Se_CBE)K + inv(Sₐ))K'inv(Se_CBE);
+G_cbe = inv(K_cbe'inv(Se_CBE)K_cbe + inv(Sₐ))K_cbe'inv(Se_CBE);
 
 # ╔═╡ 18585d46-7917-49df-963f-f8bed76e1435
 # Posterior covariance matrix (Profile retrievals, 10 layers):
-Ŝ_cbe = inv(K'inv(Se_CBE)K + inv(Sₐ));
+Ŝ_cbe = inv(K_cbe'inv(Se_CBE)K_cbe + inv(Sₐ));
 
 # ╔═╡ ec5b9496-2616-4f1d-bfa7-89632fe76fcc
 # Posterior covariance matrix (Profile retrievals, 10 layers):
-Ŝ_req = inv(K'inv(Se_REQ)K + inv(Sₐ));
+Ŝ_req = inv(K_req'inv(Se_REQ)K_req + inv(Sₐ)); 
 
 # ╔═╡ 8c5e3d56-40d7-4666-8f4f-09c78df92b55
 begin
@@ -377,54 +330,32 @@ rel_ch4_proxy_error_400_CBE = sqrt((n2o_error / sqrt(11.5) / sqrt(400/300) / 330
 
 # ╔═╡ Cell order:
 # ╟─ddbfa6eb-6233-4b48-bf37-18023d54fb9d
+# ╠═b71f5796-ff9d-4a0c-b973-d4de8463bdfe
 # ╠═19d32bc0-8a70-4f66-a0a5-7054799df57c
-# ╟─d687e5b4-7bb4-42e0-b150-374e43790254
-# ╟─5b2c23a7-e8cb-4259-9c9b-67a6fbb439e3
-# ╠═ca415390-fbb1-4812-8562-1130cae62fc2
+# ╠═d687e5b4-7bb4-42e0-b150-374e43790254
 # ╠═b298729a-0452-41d2-902d-9be8c0efdc6b
-# ╠═6bde6a7e-22cb-44eb-ab02-75ef169feb2e
-# ╠═016ec9e4-a7a7-4d62-a666-7bc1d55d36ac
-# ╠═a6da19ca-6bc8-4ac7-8b10-66a041a9cf22
-# ╠═cf06e4b3-4149-422a-9dc9-76a76e2d0b37
-# ╠═ff03de75-d086-4eb1-9288-cc4ac30cbd6f
-# ╠═2188edda-48c0-43d2-90d9-89b887cdad9f
-# ╠═5842480f-50ad-484e-b3c6-d8f5c82a2e70
-# ╠═53b88229-5974-46aa-964f-4abf57673738
-# ╠═d3fe98ca-5996-4332-aabb-489ced362fa2
-# ╠═64d02acd-3061-420f-9b46-b151e0052cbc
-# ╠═5535969a-ce85-41b8-bb56-722cd67db666
+# ╠═750d6e2c-4b3c-45e8-b65e-f7dfb9de2fa8
+# ╠═0a785adf-d7d4-4c78-8b66-217bfdea4ee4
+# ╠═98395d3e-cfd0-4b3c-b60c-4620f18d7ee3
 # ╠═4106bbff-9a3c-4f93-938d-0f32196a2308
-# ╠═1fe9f8ac-8442-4e64-8f62-b808553ff20b
-# ╠═3b2e02d0-3199-41e0-bf8a-8750c72bc300
-# ╠═f28267b7-e910-4396-b9e0-baa9fc7896db
-# ╠═8ace0941-500e-44f3-ae5f-7386e4f6b638
-# ╠═a5b11d67-e72f-4888-b256-6986bc571833
-# ╠═26fbf305-701b-44ad-b297-91979f6bb46b
-# ╠═6c7dbb18-ce72-4cec-b351-37dcb31a97f5
-# ╠═cdf91ae6-1197-4328-bbf9-16046d28c05d
-# ╠═f9dfd67f-243f-4fc0-b992-4dec962ec668
-# ╟─4991e247-1e13-4b93-8257-de777824cc95
+# ╠═4991e247-1e13-4b93-8257-de777824cc95
 # ╠═a43002aa-e378-4b87-ad06-8dacebccabc4
 # ╠═7d44f87d-7851-4224-9712-a37a990f4a0d
-# ╠═4580f545-fc13-4b3a-9ceb-4fd50a8d3451
 # ╠═673d3f9b-7a65-4d18-b8e4-b41957e40564
 # ╠═68f8bb01-8e44-460f-95fa-4a9f2feb657c
 # ╠═2e9cf224-d29b-432d-ae3e-b2ebd792d957
 # ╠═baab38dc-8b6a-4f18-9112-4e44c07a9039
 # ╟─173e4607-37de-4b8e-8d2a-63f8f3d35b2f
-# ╠═9117a48c-1a02-4b2a-a8c8-7fb80d981dbf
 # ╠═cabefd7a-1d62-478e-a108-77914078b938
 # ╠═82179d5c-2c9f-4671-b6f9-e0a61a113527
 # ╠═33f3664a-9423-4293-8c7f-58f5ebc13a30
-# ╠═21f70ce2-6764-4125-96ea-900f1c106844
 # ╠═1f68d473-7151-4221-a5b3-1ba65381089a
-# ╠═f431645a-cbf0-43fd-a70b-2dc848f3e2e0
 # ╠═acf49d45-a885-4a5a-8fed-b3bd9990117b
+# ╠═38511b46-3d3a-44a4-a38f-2ee204aeab47
 # ╠═f77a2bdb-a9ae-4f4b-863e-5044b99171f7
 # ╠═3f52e140-8383-4504-a9c2-33696f218fe8
 # ╠═e3a94fbb-19a6-42fc-b67c-5f82a0960f6c
 # ╠═4d07731c-60ee-4f6e-a7fc-76cf129e1bbf
-# ╠═c5b7d02d-8108-4f60-8f0f-a3e38893e22c
 # ╠═3eb31d88-8582-43ea-a49c-774a7985f770
 # ╠═0e4f27b0-ae5d-4491-ad93-a1eddf8d6110
 # ╠═7f4d5bf5-3f6e-4e95-a062-2c975eb16535
