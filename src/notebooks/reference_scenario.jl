@@ -20,7 +20,7 @@ using Revise
 begin
 	using CarbonI 
 	include(joinpath(dirname(pathof(CarbonI)), "forwardModel.jl"))
-end
+end 
 
 # ╔═╡ d687e5b4-7bb4-42e0-b150-374e43790254
 begin
@@ -49,11 +49,11 @@ begin
 end
 
 # ╔═╡ 750d6e2c-4b3c-45e8-b65e-f7dfb9de2fa8
-
-scenario = CarbonI.reference_scenario()
+ 
+scenario = CarbonI.reference_scenario() 
 
 # ╔═╡ 0a785adf-d7d4-4c78-8b66-217bfdea4ee4
-cbe_specs = CarbonI.build_instrument("CBE") 
+cbe_specs = CarbonI.build_instrument("CBE")
 
 # ╔═╡ 98395d3e-cfd0-4b3c-b60c-4620f18d7ee3
 req_specs = CarbonI.build_instrument("Requirement")
@@ -63,6 +63,7 @@ begin
 	plot(req_specs.modelling_wl .- req_specs.instrument_wl[Int32(round(end/2))], req_specs.convolution_matrix[Int32(round(end/2)),:], label="Requirement")
 	
 	plot!(cbe_specs.modelling_wl .- cbe_specs.instrument_wl[Int32(round(end/2))], cbe_specs.convolution_matrix[Int32(round(end/2)),:], label="CBE")
+
 	xlims!(-4,4); xlabel!("Δwl (nm)")  
 	title!("Instrument Line Shape")
 end
@@ -235,11 +236,22 @@ end
 
 # ╔═╡ 3f52e140-8383-4504-a9c2-33696f218fe8
 # Create an instrument with CBE
-cbe_ins = InstrumentOperator.createGratingNoiseModel(cbe_specs.ET, cbe_specs.Pitch, cbe_specs.FPA_quantum_efficiency, cbe_specs.bench_efficiency, cbe_specs.Fnumber, cbe_specs.SSI, (cbe_specs.readout_noise), cbe_specs.dark_current);  
+cbe_ins = InstrumentOperator.createGratingNoiseModel(cbe_specs.ET, 
+								cbe_specs.Pitch, 
+								cbe_specs.FPA_quantum_efficiency, cbe_specs.bench_efficiency, 
+								cbe_specs.Fnumber, 
+								2*cbe_specs.SSI, 
+								(cbe_specs.readout_noise), 
+								cbe_specs.dark_current);  
 
 # ╔═╡ e3a94fbb-19a6-42fc-b67c-5f82a0960f6c
 # Create an instrument with required parameters
-req_ins = InstrumentOperator.createGratingNoiseModel(req_specs.ET, req_specs.Pitch,req_specs.FPA_quantum_efficiency, req_specs.bench_efficiency, req_specs.Fnumber, req_specs.SSI, (req_specs.readout_noise), req_specs.dark_current);
+req_ins = InstrumentOperator.createGratingNoiseModel(req_specs.ET, 													req_specs.Pitch,
+								req_specs.FPA_quantum_efficiency, req_specs.bench_efficiency, 
+								req_specs.Fnumber, 
+								2*req_specs.SSI, 
+								(req_specs.readout_noise), 
+								req_specs.dark_current);
 
 # ╔═╡ 4d07731c-60ee-4f6e-a7fc-76cf129e1bbf
 begin
@@ -260,7 +272,7 @@ end
 
 # ╔═╡ 0e4f27b0-ae5d-4491-ad93-a1eddf8d6110
 #Compute electrons at the FPA
-#e_cbe = InstrumentOperator.photons_at_fpa(cbe_ins, (cbe_specs.instrument_wl)u"nm", (F_cbe)u"mW/m^2/nm/sr");
+e_cbe = InstrumentOperator.photons_at_fpa(cbe_ins, (cbe_specs.instrument_wl)u"nm", (F_cbe)u"mW/m^2/nm/sr");
 
 # ╔═╡ 7f4d5bf5-3f6e-4e95-a062-2c975eb16535
 # Generate S\_epsilon matrix
@@ -311,9 +323,9 @@ end
 # ╔═╡ c6d2d048-3de1-411d-85fe-3fdd902819fa
 begin
 	# For co-adding:
-	@show req_ch4_error/sqrt(10)
-	@show req_co2_error/sqrt(10)
-	@show req_n2o_error/sqrt(10)
+	@show req_ch4_error/sqrt(req_specs.coadd_rate)
+	@show req_co2_error/sqrt(req_specs.coadd_rate)
+	@show req_n2o_error/sqrt(req_specs.coadd_rate)
 	@show req_n2o_error/sqrt(11.4)/sqrt(400/300) / 330 * 100
 	@show n2o_error/sqrt(11.4)
 end
@@ -330,9 +342,9 @@ rel_ch4_proxy_error_400_CBE = sqrt((n2o_error / sqrt(11.5) / sqrt(400/300) / 330
 
 # ╔═╡ Cell order:
 # ╟─ddbfa6eb-6233-4b48-bf37-18023d54fb9d
-# ╠═b71f5796-ff9d-4a0c-b973-d4de8463bdfe
 # ╠═19d32bc0-8a70-4f66-a0a5-7054799df57c
 # ╠═d687e5b4-7bb4-42e0-b150-374e43790254
+# ╠═b71f5796-ff9d-4a0c-b973-d4de8463bdfe
 # ╠═b298729a-0452-41d2-902d-9be8c0efdc6b
 # ╠═750d6e2c-4b3c-45e8-b65e-f7dfb9de2fa8
 # ╠═0a785adf-d7d4-4c78-8b66-217bfdea4ee4
