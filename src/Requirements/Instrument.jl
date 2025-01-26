@@ -9,6 +9,7 @@ Base.@kwdef mutable struct InstrumentSpecs
     ET = 44.0u"ms";
     Pitch = 18.0u"μm";
     Fnumber::Float64 = 2.2;
+    coadd_rate::Int = 10;
 
     ### Dependent on build outcome; each has a 
     # required value and a current best estimate (CBE)
