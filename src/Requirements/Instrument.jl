@@ -9,6 +9,7 @@ Base.@kwdef mutable struct InstrumentSpecs
     ET = 44.0u"ms";
     Pitch = 18.0u"μm";
     Fnumber::Float64 = 2.2;
+    coadd_rate::Int = 10;
 
     ### Dependent on build outcome; each has a 
     # required value and a current best estimate (CBE)
@@ -85,7 +86,7 @@ function requirement_instrument()
         bench_efficiency = 0.72,
         readout_noise = 120.0,
         dark_current = 10e3u"1/s",
-        SSI = 1u"μm",
+        SSI = 1.0u"nm",
         FWHM = 2.5,
         lower_wavelength = 2040.0,
         upper_wavelength = 2368.0,
@@ -99,7 +100,7 @@ function cbe_instrument()
         bench_efficiency = 0.72,
         readout_noise = 100.0,
         dark_current = 5e3u"1/s",
-        SSI = 0.7u"μm",
+        SSI = 0.7u"nm",
         FWHM = 1.93,
         lower_wavelength = 2036.0,
         upper_wavelength = 2372.0,

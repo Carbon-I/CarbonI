@@ -13,7 +13,7 @@ end
 
 
 function reference_scenario()
-    lat = 30.0
+    lat = 0.0
     lon = -62.0
     sza = 30.0
     profile_hr = CarbonI.read_atmos_profile_MERRA2(CarbonI.default_merra_file, lat, lon, 7);
