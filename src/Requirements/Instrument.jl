@@ -26,6 +26,8 @@ Base.@kwdef mutable struct InstrumentSpecs
     modelling_wl
     convolution_matrix::Matrix{Float64}
     instrument_kernel::CarbonI.KernelInstrument
+    pixel_size_global
+    pixel_size_target
 
 end
 
@@ -36,7 +38,9 @@ function build_instrument(;FPA_quantum_efficiency::Float64,
                               SSI,
                               FWHM::Float64,
                               lower_wavelength::Float64,
-                              upper_wavelength::Float64)
+                              upper_wavelength::Float64,
+                              pixel_size_global,
+                              pixel_size_target)
 
         modelling_Δwl = 0.005
         instrument_wl = collect(lower_wavelength:ustrip(SSI):upper_wavelength)
@@ -67,7 +71,9 @@ function build_instrument(;FPA_quantum_efficiency::Float64,
                    instrument_wl=instrument_wl,
                    modelling_wl=modelling_wl,
                    convolution_matrix=cM,
-                   instrument_kernel=lociBox)
+                   instrument_kernel=lociBox,
+                   pixel_size_global=pixel_size_global,
+                   pixel_size_target=pixel_size_target)
 end
 
 function build_instrument(type::String)
@@ -90,6 +96,8 @@ function requirement_instrument()
         FWHM = 2.5,
         lower_wavelength = 2040.0,
         upper_wavelength = 2368.0,
+        pixel_size_global = 400u"m",
+        pixel_size_target = 50u"m"
     )
     return inst
 end
@@ -104,6 +112,8 @@ function cbe_instrument()
         FWHM = 1.93,
         lower_wavelength = 2036.0,
         upper_wavelength = 2372.0,
+        pixel_size_global = 300u"m",
+        pixel_size_target = 50u"m"
     )
     return inst
 end
