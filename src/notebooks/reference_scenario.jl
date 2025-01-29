@@ -18,7 +18,7 @@ using Revise
 # ╔═╡ 19d32bc0-8a70-4f66-a0a5-7054799df57c
 # Import CarbonI Source Project here
 begin
-	using CarbonI 
+	using CarbonI
 	include(joinpath(dirname(pathof(CarbonI)), "forwardModel.jl"))
 end 
 
@@ -28,6 +28,7 @@ begin
 	using NCDatasets, Polynomials, LinearAlgebra, SpecialPolynomials, DelimitedFiles
 	using Plots
 	using Artifacts
+	using Statistics
 	using PlutoUI
 	plotly(); 
 	# Load spectroscopies:
@@ -40,7 +41,7 @@ begin
 	DS = Dataset(CarbonI.solar_file)
 	wlSol = 1e3*DS["wl"][:]
 	solar_irr = 1e3*DS["solar_irr"][:] # convert to mW/m2/nm
-	close(DS)
+	close(DS) 
 
 	# optionally load a custom reflectance
 	#DS = Dataset("data/reflectance_cube_all_1nm_from450nm.h5")
@@ -171,17 +172,20 @@ soil = CubicSplineInterpolation(300:2400,clima_alb[:,2]/1.16, extrapolation_bc=I
 
 # ╔═╡ 33f3664a-9423-4293-8c7f-58f5ebc13a30
 begin
+	mean_base_albedo = mean(soil(cbe_specs.modelling_wl)[(cbe_specs.modelling_wl .>= 2105) .& (cbe_specs.modelling_wl .<= 2155)]);
+
+	
 	# Create solar spectrum at Forward model resolution
 	solarIrr_req = sol(req_specs.modelling_wl);
 	
 	# Compute baseline spectrally resolved albedo
-	refl_req   = soil(req_specs.modelling_wl);
+	refl_req   = soil(req_specs.modelling_wl) * scenario.broadband_albedo/mean_base_albedo;;
 
 	# Create solar spectrum at Forward model resolution
 	solarIrr_cbe = sol(cbe_specs.modelling_wl);
 	
 	# Compute baseline spectrally resolved albedo
-	refl_cbe   = soil(cbe_specs.modelling_wl);	
+	refl_cbe   = soil(cbe_specs.modelling_wl) * scenario.broadband_albedo/mean_base_albedo;	
 end
 
 # ╔═╡ 1f68d473-7151-4221-a5b3-1ba65381089a
@@ -298,12 +302,12 @@ Ŝ_req = inv(K_req'inv(Se_REQ)K_req + inv(Sₐ));
 begin
 	# Apply column operator to get to total column uncertainties:
 	ch4_error    = sqrt(h_ch4' * Ŝ_cbe * h_ch4)*1e9
-	co2_error    = sqrt(h_co2' * Ŝ_cbe * h_co2)*1e6
-	h2o_error    = sqrt(h_h2o' * Ŝ_cbe * h_h2o)*1e6
-	hdo_error    = sqrt(h_hdo' * Ŝ_cbe * h_hdo)*1e6
+	co2_error    = sqrt(h_co2' * Ŝ_cbe * h_co2)*1e9
+	h2o_error    = sqrt(h_h2o' * Ŝ_cbe * h_h2o)*1e9
+	hdo_error    = sqrt(h_hdo' * Ŝ_cbe * h_hdo)*1e9
 	n2o_error    = sqrt(h_n2o' * Ŝ_cbe * h_n2o)*1e9
 	co_error     = sqrt(h_co'  * Ŝ_cbe * h_co)*1e9
-	co213_error  = sqrt(h_co213'  * Ŝ_cbe * h_co213)*1e6
+	co213_error  = sqrt(h_co213'  * Ŝ_cbe * h_co213)*1e9
 	c2h6_error   = sqrt(h_c2h6' * Ŝ_cbe * h_c2h6)*1e9
 end
 
@@ -311,12 +315,12 @@ end
 begin
 	# Apply column operator to get to total column uncertainties:
 	req_ch4_error    = sqrt(h_ch4' * Ŝ_req * h_ch4)*1e9
-	req_co2_error    = sqrt(h_co2' * Ŝ_req * h_co2)*1e6
-	req_h2o_error    = sqrt(h_h2o' * Ŝ_req * h_h2o)*1e6
-	req_hdo_error    = sqrt(h_hdo' * Ŝ_req * h_hdo)*1e6
+	req_co2_error    = sqrt(h_co2' * Ŝ_req * h_co2)*1e9
+	req_h2o_error    = sqrt(h_h2o' * Ŝ_req * h_h2o)*1e9
+	req_hdo_error    = sqrt(h_hdo' * Ŝ_req * h_hdo)*1e9
 	req_n2o_error    = sqrt(h_n2o' * Ŝ_req * h_n2o)*1e9
 	req_co_error     = sqrt(h_co'  * Ŝ_req * h_co)*1e9
-	req_co213_error  = sqrt(h_co213'  * Ŝ_req * h_co213)*1e6
+	req_co213_error  = sqrt(h_co213'  * Ŝ_req * h_co213)*1e9
 	req_c2h6_error   = sqrt(h_c2h6' * Ŝ_req * h_c2h6)*1e9
 end
 
@@ -339,6 +343,24 @@ rel_ch4_proxy_error_400 = sqrt((req_n2o_error / sqrt(11.5) / sqrt(400/300) / 330
 # ╔═╡ 65bdc45f-9a7e-4880-af5d-905983f33573
 # Expected relatice error at CBE:
 rel_ch4_proxy_error_400_CBE = sqrt((n2o_error / sqrt(11.5) / sqrt(400/300) / 330)^2 + (ch4_error / sqrt(11.5) / sqrt(400/300) / 1900)^2) * 100
+
+# ╔═╡ 571276f6-efd0-4421-b68f-de7aec564ac1
+function roundu(x::Unitful.Quantity, d::Int64)
+    return round(typeof(x), x,digits=d)
+end
+
+# ╔═╡ bff41c21-5d06-438b-ac24-d367f5dc7f33
+co2_error
+
+# ╔═╡ 5fea80f8-082f-459d-b19e-80003c8f420d
+begin
+	println("CH4: ", roundu(CarbonI.jacobs_eq("ch4", scenario.wind_speed, ch4_error / sqrt(cbe_specs.coadd_rate), cbe_specs.pixel_size_global, style="detect"),2))  
+	println("CO2: ", roundu(CarbonI.jacobs_eq("co2", scenario.wind_speed, co2_error / sqrt(cbe_specs.coadd_rate), cbe_specs.pixel_size_global, style="detect"),2))
+	println("CO: ", roundu(CarbonI.jacobs_eq("co", scenario.wind_speed, co_error / sqrt(cbe_specs.coadd_rate), cbe_specs.pixel_size_global, style="detect"),2))
+end
+
+# ╔═╡ 57adfa63-6bb5-42f6-8f8f-f2bc4486fc92
+CarbonI.jacobs_eq("ch4", scenario.wind_speed, req_ch4_error, req_specs.pixel_size_global)
 
 # ╔═╡ Cell order:
 # ╟─ddbfa6eb-6233-4b48-bf37-18023d54fb9d
@@ -381,3 +403,7 @@ rel_ch4_proxy_error_400_CBE = sqrt((n2o_error / sqrt(11.5) / sqrt(400/300) / 330
 # ╠═411cb18c-3ac3-4a49-9fb3-d55fc9632496
 # ╠═9ee2076c-0de2-4365-b155-b1d58bf0ddc4
 # ╠═65bdc45f-9a7e-4880-af5d-905983f33573
+# ╠═571276f6-efd0-4421-b68f-de7aec564ac1
+# ╠═bff41c21-5d06-438b-ac24-d367f5dc7f33
+# ╠═5fea80f8-082f-459d-b19e-80003c8f420d
+# ╠═57adfa63-6bb5-42f6-8f8f-f2bc4486fc92

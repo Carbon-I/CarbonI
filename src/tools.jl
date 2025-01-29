@@ -1,3 +1,4 @@
+using Unitful 
 
 #ensure_artifact_installed("cross_sections", find_artifacts_toml(@__DIR__), quiet_download = true)
 function get_artifacts_path(name)
@@ -411,4 +412,51 @@ function reduce_pressure_levels(pressures, n::Int)
     #end
 
     return sort(new_pressures)
+end
+
+
+function jacobs_eq(gtype, wind_speed, enh, pixel_size; style="req")
+
+    m = CarbonI.molar_mass()
+    C = CarbonI.Constants()
+
+    #             kg/(m s^2)   m/s        s/hr *  ppb    * s^2 / m * m
+    kg_per_hour = C.p * wind_speed * 3600u"s/hr" * enh / 1e9 / C.g * pixel_size
+
+
+    if gtype == "ch4"
+        kg_per_hour *= m.ch4/m.air 
+    elseif gtype == "co2"
+        kg_per_hour *= m.co2/m.air 
+    elseif gtype == "co"
+        kg_per_hour *= m.co/m.air 
+    elseif gtype == "h2o"
+        kg_per_hour *= m.h2o/m.air
+    elseif gtype == "n2o"
+        kg_per_hour *= m.n2o/m.air
+    elseif gtype == "hdo"
+        kg_per_hour *= m.hdo/m.air
+    elseif gtype == "c2h6"
+        kg_per_hour *= m.c2h6/m.air
+    elseif gtype == "co2_iso2"
+        kg_per_hour *= m.co2_iso2/m.air
+    else
+        error("Gas type not supported:: $gtype")
+    end
+
+    if occursin("detect",style)
+        kg_per_hour *= 2
+    elseif occursin("req",style)
+        kg_per_hour *= 1
+    elseif occursin("quant",style)
+        kg_per_hour *= 5
+    else
+        error("Style not supported:: $style")
+    end
+    
+    
+    return kg_per_hour
+
+
+
 end
