@@ -20,6 +20,7 @@ function reference_scenario()
     sza = 30.0
     wind_speed = 2.5u"m/s"
     broadband_albedo = 0.15
+    # make this flat (or quartz like)
     profile_hr = CarbonI.read_atmos_profile_MERRA2(CarbonI.default_merra_file, lat, lon, 7);
     sce = Scenario(lat=lat, lon=lon, sza=sza, profile_hr=profile_hr, wind_speed=wind_speed,broadband_albedo=broadband_albedo)
     return sce

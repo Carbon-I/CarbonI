@@ -112,8 +112,8 @@ function cbe_instrument()
         FWHM = 1.93,
         lower_wavelength = 2036.0,
         upper_wavelength = 2372.0,
-        pixel_size_global = 300u"m",
-        pixel_size_target = 50u"m"
+        pixel_size_global = 345u"m",
+        pixel_size_target = 34.5u"m"
     )
     return inst
 end

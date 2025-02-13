@@ -111,6 +111,10 @@ function setup_data(scenario, specs)
 	n_state = length(x);
 	Sₐ = zeros(n_state,n_state);
 	rel_error = 0.0001;
+	rel_error = 0.02;
+	# could try modifying this to something like 0.02 (TBD)
+	# currently good for point surfaces and surface components
+
 	# vcd_ratio = profile_caltech.vcd_dry ./ mean(profile_caltech.vcd_dry)
 
 	# Fill the diagonal for the trace gases:
