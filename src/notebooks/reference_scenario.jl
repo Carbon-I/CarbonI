@@ -29,7 +29,7 @@ begin
 	using Plots
 	using Artifacts
 	using Statistics
-	using PlutoUI
+	using PlutoUI 
 	plotly(); 
 	# Load spectroscopies:
 	co2, ch4, h2o, hdo, n2o, co, co2_iso2, c2h6 = CarbonI.loadXSModels();
@@ -121,7 +121,7 @@ begin
 	# Get prior covariance matrix:
 	n_state = length(x);
 	Sₐ = zeros(n_state,n_state);
-	rel_error = 0.0001;
+	rel_error = 0.02;
 	# vcd_ratio = profile_caltech.vcd_dry ./ mean(profile_caltech.vcd_dry)
 		
 	# Fill the diagonal for the trace gases:
@@ -379,7 +379,7 @@ CarbonI.jacobs_eq("ch4", scenario.wind_speed, req_ch4_error, req_specs.pixel_siz
 # ╠═68f8bb01-8e44-460f-95fa-4a9f2feb657c
 # ╠═2e9cf224-d29b-432d-ae3e-b2ebd792d957
 # ╠═baab38dc-8b6a-4f18-9112-4e44c07a9039
-# ╟─173e4607-37de-4b8e-8d2a-63f8f3d35b2f
+# ╠═173e4607-37de-4b8e-8d2a-63f8f3d35b2f
 # ╠═cabefd7a-1d62-478e-a108-77914078b938
 # ╠═82179d5c-2c9f-4671-b6f9-e0a61a113527
 # ╠═33f3664a-9423-4293-8c7f-58f5ebc13a30

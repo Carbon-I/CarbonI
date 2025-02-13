@@ -25,7 +25,7 @@ begin
 	using NCDatasets, Polynomials, LinearAlgebra, SpecialPolynomials
 	using Statistics
 	using PrettyTables
-end 
+end  
 
 # ╔═╡ d687e5b4-7bb4-42e0-b150-374e43790254
 begin
@@ -83,7 +83,7 @@ begin
 	# In ppb
 	header = ["Species","Albedo", "Wind", "Global Mode CBE", "Global Mode Req", "Target Mode CBE", "Target Mode Req"]
 	data_ppb = []
-	for key in ["ch4", "co2", "h2o", "hdo", "n2o", "co", "c2h6"]
+	for key in ["ch4", "co2", "co", "hdo", "n2o", "h2o", "c2h6"]
 		push!(data_ppb, [key, scenario.broadband_albedo, 
 								scenario.wind_speed, 
 								error_cbe[key] / sqrt(cbe_specs.coadd_rate), 
@@ -108,7 +108,7 @@ begin
 end
 
 # ╔═╡ a07570ed-c906-4fc3-b66c-493bda8dec5f
-data[1]
+data[1] 
 
 # ╔═╡ ad838ad4-89a7-4554-856e-135d7b8a3e57
 function uts(q; digits=2)
@@ -150,6 +150,12 @@ $(data_ppb_str[3][1]) | $(data_ppb_str[3][2]) | $(data_ppb_str[3][3]) | $(data_p
 # ╔═╡ db0a1902-6368-452f-ad38-b914fbe14a75
 scenario
 
+# ╔═╡ e21c870f-4b87-4657-84e6-9e326e3dffa9
+cbe_specs
+
+# ╔═╡ c0f6025d-6342-4326-be94-3ee09cd7abba
+req_specs
+
 # ╔═╡ 476345be-cc6c-4725-9f2a-aab9af9dadac
 begin
 	# Compute noise equivalent radiance:
@@ -163,6 +169,128 @@ begin
 	plot!(cbe_specs.instrument_wl, nesr_cbe_, label="CBE"); ylabel!("NESR radiance (mW/m²/nm/sr)")
 	title!("NESR")
 end
+
+# ╔═╡ b1976cb5-2bdf-476d-827d-82e872209d19
+function pd(c, r)
+	return uts(100*(c-r)/r)
+end 
+
+# ╔═╡ b96b75a8-e2f0-46d6-9b2e-93e26b7e0201
+begin
+
+reference_req_global_ppb = Dict("ch4" => 5, "co2" => 1000, "co" => 25)
+reference_req_target_ppb = Dict("ch4" => 16, "co2" => 4000, "co" => 80)
+
+md"""
+Margin between Section E1 Req and CBE
+
+| Gas | Global (%) | Target (%) |
+:-- | :-- | :-- | 
+CH₄ | $(pd(reference_req_global_ppb["ch4"],data_ppb[1][4])) | $(pd( reference_req_target_ppb["ch4"],data_ppb[1][6])) |
+CO₂ | $(pd(reference_req_global_ppb["co2"],data_ppb[2][4])) | $(pd( reference_req_target_ppb["co2"],data_ppb[2][6])) |
+CO | $(pd( reference_req_global_ppb["co"],data_ppb[3][4])) | $(pd( reference_req_target_ppb["co"],data_ppb[3][6])) |
+"""
+end
+
+# ╔═╡ bcb185f9-dc1c-4313-b99e-0df1e8bdd09b
+begin
+	# Convert D-2 global model point source req to E1-1 table
+	l1_4 = Dict()
+	l1_5 = Dict()
+	for key in ["ch4", "co2", "co"]
+		l1_4[key] = CarbonI.jacobs_eq(key, scenario.wind_speed, reference_req_global_ppb[key], cbe_specs.pixel_size_global, style="detect")
+		l1_5[key] = CarbonI.jacobs_eq(key, scenario.wind_speed, reference_req_target_ppb[key], cbe_specs.pixel_size_target, style="detect")
+	end
+
+	l1_4
+	l1_5
+
+md"""
+| Gas | Global (L1-4) | Target (L1-5) |
+:-- | :-- | :-- | 
+CH₄ | $(uts(l1_4["ch4"])) | $(uts(l1_5["ch4"])) |
+CO₂ | $(uts(l1_4["co2"])) | $(uts(l1_5["co2"])) |
+CO | $(uts(l1_4["co"]))  | $(uts(l1_5["co"])) |
+"""
+end
+
+# ╔═╡ 47df962e-b4c7-4f5c-86fe-063d0696bdc0
+
+
+# ╔═╡ ec75e32e-3651-4c99-bc2e-977e48dec038
+
+
+# ╔═╡ 2de62010-c2e4-4ec6-a35b-678943ef82fa
+
+
+# ╔═╡ bdfdfad3-794a-4d4e-91ba-88a5a5f16252
+
+
+# ╔═╡ 6181caf5-8dfb-4436-a3ea-ea218b150490
+
+
+# ╔═╡ 16e32b98-8bb6-4c05-bd6c-2eb8138a4d4f
+
+
+# ╔═╡ 34476c71-8497-43f8-87bf-a375caf9df1f
+
+
+# ╔═╡ c5aa4a61-54ca-46b4-a412-c0ce2ab92e45
+
+
+# ╔═╡ 45c2fca7-d973-4729-b90f-53cc4600356d
+
+
+# ╔═╡ e98fb519-f2ec-49aa-86d2-904e8b93df53
+
+
+# ╔═╡ 95bf075f-3282-4cfc-989c-1eb40313eb60
+
+
+# ╔═╡ f662dd64-5f6b-4e68-8e32-b2b55c840a9c
+
+
+# ╔═╡ e847bd0b-a6ed-4df9-b5ed-54e9f7a9f13a
+
+
+# ╔═╡ 1e204599-c4bb-4d16-aef7-4e8d026a06da
+
+
+# ╔═╡ 624ecea2-f48b-45b9-9109-1b54c3edb718
+
+
+# ╔═╡ d43ddcde-1a19-412d-929a-f37d7e0cb32e
+
+
+# ╔═╡ c99460e5-3701-4c0d-b686-1cb93630c66f
+
+
+# ╔═╡ cff4cf33-49fd-4694-8dc2-f2d048249d47
+
+
+# ╔═╡ c31b9952-c7ca-4060-ad04-0f398ace956d
+
+
+# ╔═╡ a3108029-ed76-4e3d-9c18-62527b695e94
+
+
+# ╔═╡ ef030b36-6dca-482b-8da4-0505d18bfaec
+
+
+# ╔═╡ 9eb9a557-6d49-4b44-a618-2a4291e03ef1
+
+
+# ╔═╡ 9578b29a-8bd6-4fb0-b42c-d902c6b78bb9
+
+
+# ╔═╡ cc308933-46b9-4716-af47-660cf124de31
+ 
+
+# ╔═╡ 3f62c456-2c4d-4dd4-ace5-328dd331c12c
+
+
+# ╔═╡ 931e6769-3a7e-48e4-85c8-f9a256facd10
+
 
 # ╔═╡ Cell order:
 # ╟─ddbfa6eb-6233-4b48-bf37-18023d54fb9d
@@ -180,4 +308,35 @@ end
 # ╟─4a621a49-6a9c-4028-88f3-df5e004d09f4
 # ╟─9b9e9691-1e63-4f2a-a395-0299cffb8e33
 # ╠═db0a1902-6368-452f-ad38-b914fbe14a75
+# ╠═e21c870f-4b87-4657-84e6-9e326e3dffa9
+# ╠═c0f6025d-6342-4326-be94-3ee09cd7abba
 # ╟─476345be-cc6c-4725-9f2a-aab9af9dadac
+# ╠═b1976cb5-2bdf-476d-827d-82e872209d19
+# ╠═b96b75a8-e2f0-46d6-9b2e-93e26b7e0201
+# ╠═bcb185f9-dc1c-4313-b99e-0df1e8bdd09b
+# ╠═47df962e-b4c7-4f5c-86fe-063d0696bdc0
+# ╠═ec75e32e-3651-4c99-bc2e-977e48dec038
+# ╠═2de62010-c2e4-4ec6-a35b-678943ef82fa
+# ╠═bdfdfad3-794a-4d4e-91ba-88a5a5f16252
+# ╠═6181caf5-8dfb-4436-a3ea-ea218b150490
+# ╠═16e32b98-8bb6-4c05-bd6c-2eb8138a4d4f
+# ╠═34476c71-8497-43f8-87bf-a375caf9df1f
+# ╠═c5aa4a61-54ca-46b4-a412-c0ce2ab92e45
+# ╠═45c2fca7-d973-4729-b90f-53cc4600356d
+# ╠═e98fb519-f2ec-49aa-86d2-904e8b93df53
+# ╠═95bf075f-3282-4cfc-989c-1eb40313eb60
+# ╠═f662dd64-5f6b-4e68-8e32-b2b55c840a9c
+# ╠═e847bd0b-a6ed-4df9-b5ed-54e9f7a9f13a
+# ╠═1e204599-c4bb-4d16-aef7-4e8d026a06da
+# ╠═624ecea2-f48b-45b9-9109-1b54c3edb718
+# ╠═d43ddcde-1a19-412d-929a-f37d7e0cb32e
+# ╠═c99460e5-3701-4c0d-b686-1cb93630c66f
+# ╠═cff4cf33-49fd-4694-8dc2-f2d048249d47
+# ╠═c31b9952-c7ca-4060-ad04-0f398ace956d
+# ╠═a3108029-ed76-4e3d-9c18-62527b695e94
+# ╠═ef030b36-6dca-482b-8da4-0505d18bfaec
+# ╠═9eb9a557-6d49-4b44-a618-2a4291e03ef1
+# ╠═9578b29a-8bd6-4fb0-b42c-d902c6b78bb9
+# ╠═cc308933-46b9-4716-af47-660cf124de31
+# ╠═3f62c456-2c4d-4dd4-ace5-328dd331c12c
+# ╠═931e6769-3a7e-48e4-85c8-f9a256facd10
