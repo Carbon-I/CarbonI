@@ -8,8 +8,8 @@ using Artifacts, LazyArtifacts
 co2, ch4, h2o, hdo, n2o, co, co2_iso2, c2h6 = CarbonI.loadXSModels();
 
 #include(joinpath(@__DIR__, "readSun_DC.jl"))
-include(joinpath(@__DIR__, "readSun.jl"))
-include(joinpath(@__DIR__, "forwardModel.jl"))
+include(joinpath(@__DIR__, "src/readSun.jl"))
+include(joinpath(@__DIR__, "src/forwardModel.jl"))
 
 # Load some profile:
 MD = CarbonI.default_merra_file
@@ -96,7 +96,7 @@ soil = CubicSplineInterpolation(300:2400,clima_alb[:,2]/1.16, extrapolation_bc=I
 solarIrr = sol(wl);
 refl   = soil(wl);
 
-L_conv = CarbonI.forward_model_x_(x; sun=sol(wl),reflectance=soil(wl), sza=0.0, instrument=lociBox, profile=profile,σ_matrix=σ_matrix, wl=wl )
+L_conv = CarbonI.forward_model_x_(x; sun=sol(wl),reflectance=refl, sza=30.0, instrument=lociBox, profile=profile,σ_matrix=σ_matrix, wl=wl )
 
 nesr = InstrumentOperator.noise_equivalent_radiance(ins, (lociBox.ν_out)u"nm", (L_conv)u"mW/m^2/nm/sr");
 nesr_unitless = nesr./1u"mW/m^2/nm/sr";
