@@ -23,8 +23,8 @@ begin
 
 	using InstrumentOperator, Unitful, Interpolations, DiffResults
 	using NCDatasets, Polynomials, LinearAlgebra, SpecialPolynomials
-	using Statistics
-	using PrettyTables
+	using Statistics 
+	using PrettyTables  
 end  
 
 # ╔═╡ d687e5b4-7bb4-42e0-b150-374e43790254
@@ -34,6 +34,12 @@ begin
 	plotly(); 
 end
 	
+
+# ╔═╡ 3c719593-275b-4c74-920d-79bd9fb0487f
+
+
+# ╔═╡ d56abd97-7325-4205-b82d-763370c4a254
+
 
 # ╔═╡ 82179d5c-2c9f-4671-b6f9-e0a61a113527
 begin
@@ -70,6 +76,12 @@ begin
 	mean_base_albedo = mean(soil_cbe(cbe_specs.modelling_wl)[(cbe_specs.modelling_wl .>= 2105) .& (cbe_specs.modelling_wl .<= 2155)]);
 end
 
+# ╔═╡ 68fde8b2-2ee0-4ee1-9c2c-fc9b6992fbfa
+scenario
+
+# ╔═╡ 423a4dc0-ed56-4b04-ad4e-b43b5679c938
+
+
 # ╔═╡ 57adfa63-6bb5-42f6-8f8f-f2bc4486fc92
 begin
 	refl_req   = soil_req(req_specs.modelling_wl) * scenario.broadband_albedo/mean_base_albedo;
@@ -100,10 +112,18 @@ begin
 	for key in ["ch4", "co2", "co", "h2o", "hdo", "n2o", "c2h6"]
 		push!(data, [key, scenario.broadband_albedo, 
 								scenario.wind_speed, 
-								CarbonI.jacobs_eq(key, scenario.wind_speed, error_cbe[key] / sqrt(cbe_specs.coadd_rate), cbe_specs.pixel_size_global, style="detect"),
-								CarbonI.jacobs_eq(key, scenario.wind_speed, error_req[key] / sqrt(cbe_specs.coadd_rate), cbe_specs.pixel_size_global, style="detect"),
-								CarbonI.jacobs_eq(key, scenario.wind_speed, error_cbe[key], req_specs.pixel_size_target, style="detect"),
-								CarbonI.jacobs_eq(key, scenario.wind_speed, error_req[key], req_specs.pixel_size_target, style="detect")])
+
+	# Global mode CBE
+	CarbonI.jacobs_eq(key, scenario.wind_speed, error_cbe[key] / sqrt(cbe_specs.coadd_rate), cbe_specs.pixel_size_global, style="detect"),
+
+	# Global Mode Req
+	CarbonI.jacobs_eq(key, scenario.wind_speed, error_req[key] / sqrt(cbe_specs.coadd_rate), cbe_specs.pixel_size_global, style="detect"),
+
+	# Target Mode CBE
+	CarbonI.jacobs_eq(key, scenario.wind_speed, error_cbe[key], cbe_specs.pixel_size_target, style="detect"),
+
+	# Target Mode Req
+	CarbonI.jacobs_eq(key, scenario.wind_speed, error_req[key], req_specs.pixel_size_target, style="detect")])
 	end 
 end
 
@@ -195,96 +215,74 @@ end
 # ╔═╡ bcb185f9-dc1c-4313-b99e-0df1e8bdd09b
 begin
 	# Convert D-2 global model point source req to E1-1 table
-	l1_4 = Dict()
-	l1_5 = Dict()
+	l1_2 = Dict()
+	l1_3 = Dict()
 	for key in ["ch4", "co2", "co"]
-		l1_4[key] = CarbonI.jacobs_eq(key, scenario.wind_speed, reference_req_global_ppb[key], cbe_specs.pixel_size_global, style="detect")
-		l1_5[key] = CarbonI.jacobs_eq(key, scenario.wind_speed, reference_req_target_ppb[key], cbe_specs.pixel_size_target, style="detect")
+		l1_2[key] = CarbonI.jacobs_eq(key, scenario.wind_speed, reference_req_global_ppb[key], req_specs.pixel_size_global, style="detect")
+		l1_3[key] = CarbonI.jacobs_eq(key, scenario.wind_speed, reference_req_target_ppb[key], req_specs.pixel_size_target, style="detect")
 	end
 
-	l1_4
-	l1_5
-
+	l1_2
+	l1_3
 md"""
-| Gas | Global (L1-4) | Target (L1-5) |
+| Gas | Global Req (L1-2) | Target Req (L1-3) |
 :-- | :-- | :-- | 
-CH₄ | $(uts(l1_4["ch4"])) | $(uts(l1_5["ch4"])) |
-CO₂ | $(uts(l1_4["co2"])) | $(uts(l1_5["co2"])) |
-CO | $(uts(l1_4["co"]))  | $(uts(l1_5["co"])) |
+CH₄ | $(uts(l1_2["ch4"])) | $(uts(l1_3["ch4"])) |
+CO₂ | $(uts(l1_2["co2"])) | $(uts(l1_3["co2"])) |
+CO | $(uts(l1_2["co"]))  | $(uts(l1_3["co"])) |
 """
 end
 
-# ╔═╡ 47df962e-b4c7-4f5c-86fe-063d0696bdc0
-
-
-# ╔═╡ ec75e32e-3651-4c99-bc2e-977e48dec038
-
-
-# ╔═╡ 2de62010-c2e4-4ec6-a35b-678943ef82fa
-
-
-# ╔═╡ bdfdfad3-794a-4d4e-91ba-88a5a5f16252
-
-
-# ╔═╡ 6181caf5-8dfb-4436-a3ea-ea218b150490
-
-
-# ╔═╡ 16e32b98-8bb6-4c05-bd6c-2eb8138a4d4f
-
-
-# ╔═╡ 34476c71-8497-43f8-87bf-a375caf9df1f
-
-
-# ╔═╡ c5aa4a61-54ca-46b4-a412-c0ce2ab92e45
-
-
-# ╔═╡ 45c2fca7-d973-4729-b90f-53cc4600356d
-
-
-# ╔═╡ e98fb519-f2ec-49aa-86d2-904e8b93df53
-
-
-# ╔═╡ 95bf075f-3282-4cfc-989c-1eb40313eb60
-
-
-# ╔═╡ f662dd64-5f6b-4e68-8e32-b2b55c840a9c
-
-
-# ╔═╡ e847bd0b-a6ed-4df9-b5ed-54e9f7a9f13a
-
-
-# ╔═╡ 1e204599-c4bb-4d16-aef7-4e8d026a06da
-
-
-# ╔═╡ 624ecea2-f48b-45b9-9109-1b54c3edb718
-
-
-# ╔═╡ d43ddcde-1a19-412d-929a-f37d7e0cb32e
-
-
-# ╔═╡ c99460e5-3701-4c0d-b686-1cb93630c66f
-
-
-# ╔═╡ cff4cf33-49fd-4694-8dc2-f2d048249d47
-
-
-# ╔═╡ c31b9952-c7ca-4060-ad04-0f398ace956d
-
-
-# ╔═╡ a3108029-ed76-4e3d-9c18-62527b695e94
+# ╔═╡ 233a7657-db40-4614-ad29-88c1ae0aabe8
 
 
 # ╔═╡ ef030b36-6dca-482b-8da4-0505d18bfaec
+# We round the above L1-2 and L1-3 requirements to:
+begin
+	l1_2_rounded = Dict("ch4" => 175u"kg/hr", "co2" => 100000u"kg/hr", "co" => 2000u"kg/hr")
+	l1_3_rounded = Dict("ch4" => 65u"kg/hr", "co2" => 50000u"kg/hr", "co" => 1000u"kg/hr")
 
+	l1_2_margin = Dict()
+	l1_3_margin = Dict()
 
-# ╔═╡ 9eb9a557-6d49-4b44-a618-2a4291e03ef1
+	l1_2_margin["ch4"] = (l1_2_rounded["ch4"] - data_str[1][4])/l1_2_rounded["ch4"]
+	l1_2_margin["co2"] = (l1_2_rounded["co2"] - data_str[2][4])/l1_2_rounded["co2"]
+	l1_2_margin["co"] = (l1_2_rounded["co"] - data_str[3][4])/l1_2_rounded["co"]
 
+	l1_3_margin["ch4"] = (l1_3_rounded["ch4"] - data_str[1][6])/l1_3_rounded["ch4"]
+	l1_3_margin["co2"] = (l1_3_rounded["co2"] - data_str[2][6])/l1_3_rounded["co2"]
+	l1_3_margin["co"] = (l1_3_rounded["co"] - data_str[3][6])/l1_3_rounded["co"]
 
-# ╔═╡ 9578b29a-8bd6-4fb0-b42c-d902c6b78bb9
+md"""
+| Gas | Global Margin (L1-2) | Target Margin (L1-3) |
+:-- | :-- | :-- | 
+CH₄ | $(uts(l1_2_margin["ch4"])) | $(uts(l1_3_margin["ch4"])) |
+CO₂ | $(uts(l1_2_margin["co2"])) | $(uts(l1_3_margin["co2"])) |
+CO | $(uts(l1_2_margin["co"]))  | $(uts(l1_3_margin["co"])) |
+"""
+end
 
+# ╔═╡ 776ed10e-a1f5-4b06-b160-cfa42b141cc5
+begin
+	l1_2_margin_ppb = Dict()
+	l1_3_margin_ppb = Dict()
+	
+	l1_2_margin_ppb["ch4"] = (reference_req_global_ppb["ch4"] - data_ppb_str[1][4])/reference_req_global_ppb["ch4"]
+	l1_2_margin_ppb["co2"] = (reference_req_global_ppb["co2"] - data_ppb_str[2][4])/reference_req_global_ppb["co2"]
+	l1_2_margin_ppb["co"] = (reference_req_global_ppb["co"] - data_ppb_str[3][4])/reference_req_global_ppb["co"]
 
-# ╔═╡ cc308933-46b9-4716-af47-660cf124de31
- 
+	l1_3_margin_ppb["ch4"] = (reference_req_target_ppb["ch4"] - data_ppb_str[1][6])/reference_req_target_ppb["ch4"]
+	l1_3_margin_ppb["co2"] = (reference_req_target_ppb["co2"] - data_ppb_str[2][6])/reference_req_target_ppb["co2"]
+	l1_3_margin_ppb["co"] = (reference_req_target_ppb["co"] - data_ppb_str[3][6])/reference_req_target_ppb["co"]
+
+	md"""
+| Gas | Global PPB Margin (L1-2) | Target PPB Margin (L1-3) |
+:-- | :-- | :-- | 
+CH₄ | $(uts(l1_2_margin_ppb["ch4"])) | $(uts(l1_3_margin_ppb["ch4"])) |
+CO₂ | $(uts(l1_2_margin_ppb["co2"])) | $(uts(l1_3_margin_ppb["co2"])) |
+CO | $(uts(l1_2_margin_ppb["co"]))  | $(uts(l1_3_margin_ppb["co"])) |
+"""
+end
 
 # ╔═╡ 3f62c456-2c4d-4dd4-ace5-328dd331c12c
 
@@ -295,10 +293,14 @@ end
 # ╔═╡ Cell order:
 # ╟─ddbfa6eb-6233-4b48-bf37-18023d54fb9d
 # ╠═19d32bc0-8a70-4f66-a0a5-7054799df57c
+# ╠═3c719593-275b-4c74-920d-79bd9fb0487f
+# ╠═d56abd97-7325-4205-b82d-763370c4a254
 # ╠═d687e5b4-7bb4-42e0-b150-374e43790254
 # ╠═b71f5796-ff9d-4a0c-b973-d4de8463bdfe
 # ╠═82179d5c-2c9f-4671-b6f9-e0a61a113527
 # ╠═7ad80f67-f716-438b-85f3-958aae70120f
+# ╠═68fde8b2-2ee0-4ee1-9c2c-fc9b6992fbfa
+# ╠═423a4dc0-ed56-4b04-ad4e-b43b5679c938
 # ╠═57adfa63-6bb5-42f6-8f8f-f2bc4486fc92
 # ╠═dde12853-6ea9-4e5e-a413-3e04dce9355a
 # ╠═8da5074c-5822-4e76-8a1d-d698482bccb0
@@ -314,29 +316,8 @@ end
 # ╠═b1976cb5-2bdf-476d-827d-82e872209d19
 # ╠═b96b75a8-e2f0-46d6-9b2e-93e26b7e0201
 # ╠═bcb185f9-dc1c-4313-b99e-0df1e8bdd09b
-# ╠═47df962e-b4c7-4f5c-86fe-063d0696bdc0
-# ╠═ec75e32e-3651-4c99-bc2e-977e48dec038
-# ╠═2de62010-c2e4-4ec6-a35b-678943ef82fa
-# ╠═bdfdfad3-794a-4d4e-91ba-88a5a5f16252
-# ╠═6181caf5-8dfb-4436-a3ea-ea218b150490
-# ╠═16e32b98-8bb6-4c05-bd6c-2eb8138a4d4f
-# ╠═34476c71-8497-43f8-87bf-a375caf9df1f
-# ╠═c5aa4a61-54ca-46b4-a412-c0ce2ab92e45
-# ╠═45c2fca7-d973-4729-b90f-53cc4600356d
-# ╠═e98fb519-f2ec-49aa-86d2-904e8b93df53
-# ╠═95bf075f-3282-4cfc-989c-1eb40313eb60
-# ╠═f662dd64-5f6b-4e68-8e32-b2b55c840a9c
-# ╠═e847bd0b-a6ed-4df9-b5ed-54e9f7a9f13a
-# ╠═1e204599-c4bb-4d16-aef7-4e8d026a06da
-# ╠═624ecea2-f48b-45b9-9109-1b54c3edb718
-# ╠═d43ddcde-1a19-412d-929a-f37d7e0cb32e
-# ╠═c99460e5-3701-4c0d-b686-1cb93630c66f
-# ╠═cff4cf33-49fd-4694-8dc2-f2d048249d47
-# ╠═c31b9952-c7ca-4060-ad04-0f398ace956d
-# ╠═a3108029-ed76-4e3d-9c18-62527b695e94
+# ╠═233a7657-db40-4614-ad29-88c1ae0aabe8
 # ╠═ef030b36-6dca-482b-8da4-0505d18bfaec
-# ╠═9eb9a557-6d49-4b44-a618-2a4291e03ef1
-# ╠═9578b29a-8bd6-4fb0-b42c-d902c6b78bb9
-# ╠═cc308933-46b9-4716-af47-660cf124de31
+# ╠═776ed10e-a1f5-4b06-b160-cfa42b141cc5
 # ╠═3f62c456-2c4d-4dd4-ace5-328dd331c12c
 # ╠═931e6769-3a7e-48e4-85c8-f9a256facd10
