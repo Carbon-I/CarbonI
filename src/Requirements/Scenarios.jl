@@ -17,8 +17,8 @@ end
 function reference_scenario()
     lat = 40.0
     lon = -100.0
-    sza = 30.0
-    wind_speed = 2.5u"m/s"
+    sza = 50.0
+    wind_speed = 2.0u"m/s"
     broadband_albedo = 0.15
     # make this flat (or quartz like)
     profile_hr = CarbonI.read_atmos_profile_MERRA2(CarbonI.default_merra_file, lat, lon, 7);
