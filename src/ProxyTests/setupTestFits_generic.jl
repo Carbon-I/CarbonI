@@ -76,7 +76,7 @@ function createFitParams(indLR, setupFile, n_layers, gas_array)
     Δwl = 0.004
     wl = 2030:Δwl:2390
     # Define an instrument:
-    cM, wl_ci = CarbonI.create_carbonI_conv_matrix(wl)
+    cM, wl_ci = CarbonI.create_carbonI_conv_matrix_cbe(wl)
 
     # Spectral database is in reverse oder (wavenumber)
     indHR  = findall(wl_ci[indLR[1]]-5 .< reverse(wl) .< wl_ci[indLR[end]]+5)

@@ -3,6 +3,7 @@ using CarbonI
 using ImageFiltering, DiffResults, ForwardDiff, InstrumentOperator, Unitful, Interpolations
 using NCDatasets, Polynomials, LinearAlgebra, SpecialPolynomials, DelimitedFiles
 using CairoMakie
+using ImageFiltering
 # Load spectroscopies:
 co2, ch4, h2o, hdo, n2o, co, co2_iso2, c2h6 = CarbonI.loadXSModels();
 
@@ -90,7 +91,7 @@ lociBox = CarbonI.KernelInstrument(kernf, collect(2040:SSI:2380));
 
 # Define state vector:
 #x = [vmr_co2; vmr_h2o; vmr_ch4; vmr_co; vmr_n2o; vmr_hdo; vmr_co2 ; vmr_c2h6 ;zeros(10) ];
-nLeg = 10
+nLeg = 18
 xPoly = zeros(nLeg).+eps()
 xPoly[1] = 1.0
 x = [reduce(vcat,gasProfiles) ; xPoly ];
@@ -158,7 +159,7 @@ ins = InstrumentOperator.createGratingNoiseModel(ET, Pitch,FPA_QE, Bench_efficie
 
 albs = 0.04:0.01:0.6
 
-FWHMs = 0.05:0.03:5.0
+FWHMs = 0.05:0.03:15.0
 errors = zeros(length(FWHMs), 8)
 sza = 30.0
 for (i,FWHM) in enumerate(FWHMs)
@@ -171,7 +172,17 @@ for (i,FWHM) in enumerate(FWHMs)
     #kern1 = CarbonI.box_kernel(2*SSI, Δwl)
     kern2 = CarbonI.gaussian_kernel(FWHM, Δwl)
     #kernf = imfilter(kern1, kern2)
-    ranger = max(2373 - SSI*480, 2035.0) : SSI : 2373 
+    ranger = max(2373 - SSI*480, 2035.0) : SSI : 2373
+    # Also Adjust polynomial in terms of bandpass, choosing 1 degree per 20nm:
+    nLeg = Int(floor((maximum(ranger) - minimum(ranger))/10))+1
+    # Put in arbitrarily high numbers for the polynomial term, so these won't be constrained at all! 
+    for i=81:n_state
+        if i-81 <= nLeg
+            Sₐ[i,i] = 1e2^2
+        else
+            Sₐ[i,i] = 1e-12^2;
+        end
+    end
     lociBox = CarbonI.KernelInstrument(kern2, collect(ranger));
     ins = InstrumentOperator.createGratingNoiseModel(ET, Pitch,FPA_QE, Bench_efficiency, Fnumber, (2SSI)u"nm", (readout_noise), dark_current);  
     result = DiffResults.JacobianResult(zeros(length(lociBox.ν_out)),x);
@@ -197,7 +208,7 @@ end
 
  
 f = Figure(resolution=(600,300), title="", fontsize=16)
-ax1 = Axis(f[1,1], xlabel="FHWM (nm; SSI=FWHM/3)", ylabel="Precision (ppm/ppb)",title="Constrained Optimization (480 detector pixels)", yscale=log10 )
+ax1 = Axis(f[1,1], xlabel="FHWM (nm; SSI=FWHM/2.5)", ylabel="Precision (ppm/ppb)",title="Optimal SSI with fixed detector size (bandpass increases with SSI)", yscale=log10 )
 #CairoMakie.xlims!(0.04,0.5)
 #CairoMakie.ylims!(0,0.94)
 
@@ -209,29 +220,37 @@ axislegend(ax1; position = :rt, labelsize = 15)
 f
 
 ranger = max.(2373 .- FWHMs/3*480, 2035.0)
+k = Kernel.gaussian((1.5,))
 
-f = Figure(resolution=(600,400), title="", fontsize=16)
-ax1 = Axis(f[1,1], xlabel="SSI (nm; FWHM=2.5xSSI)", ylabel="Precision (normalized by best)",title="Constrained Optimization (480 detector pixels, window ends at 2373nm)" )
-CairoMakie.xlims!(0.02,1.0)
-CairoMakie.ylims!(0.95,3.5)
+function plotOptimalRange()
+    f = Figure(resolution=(600,400),backgroundcolor = :transparent, title="", fontsize=20)
+    ax1 = Axis(f[1,1],backgroundcolor = :transparent,xscale=Makie.pseudolog10,xticks = [0.1, 0.4, 0.7, 1, 2, 3,4], xlabel="SSI (nm; FWHM=2.5xSSI)", ylabel="Precision (normalized by best)",title="SSI tradeoff for precision with fixed detector size" )
+    CairoMakie.xlims!(0.02,1.0)
+    CairoMakie.ylims!(0.95,3.5)
+    CairoMakie.lines!(ax1, FWHMs/2.5,imfilter(errors[:,5]./minimum(errors[:,5]),k), label="N₂O",linewidth=2 ); 
+    CairoMakie.lines!(ax1, FWHMs/2.5,imfilter(errors[:,1]./minimum(errors[:,1]),k), label="CH₄",linewidth=3.5 ); 
+    #CairoMakie.lines!(ax1, FWHMs/3,errors[:,2]./minimum(errors[:,2]), label="CO₂",linewidth=2 ); 
+    CairoMakie.lines!(ax1, [2.1/3,2.1/3],[0.95, 5], label="Design Choice",linewidth=4, alpha=0.5, color=:gray );
+    #ax2 = Axis(f[1,1], ylabel = "Fit Window Start (nm) ")
 
-CairoMakie.lines!(ax1, FWHMs/3,errors[:,5]./minimum(errors[:,5]), label="N₂O",linewidth=2 ); 
-CairoMakie.lines!(ax1, FWHMs/3,errors[:,1]./minimum(errors[:,1]), label="CH₄",linewidth=2 ); 
-#CairoMakie.lines!(ax1, FWHMs/3,errors[:,2]./minimum(errors[:,2]), label="CO₂",linewidth=2 ); 
-CairoMakie.lines!(ax1, [2.1/3,2.1/3],[0.95, 5], label="Design Choice",linewidth=4, alpha=0.5, color=:black );
-#ax2 = Axis(f[1,1], ylabel = "Fit Window Start (nm) ")
+    #plot2 = lines!(ax2, FWHMs/3, ranger, color = :black)
 
-#plot2 = lines!(ax2, FWHMs/3, ranger, color = :black)
+    #ax2.yaxisposition = :right
+    #ax2.yticklabelalign = (:left, :center)
+    #ax2.xticklabelsvisible = false
+    ##ax2.xticklabelsvisible = false
+    #ax2.xlabelvisible = false
 
-#ax2.yaxisposition = :right
-#ax2.yticklabelalign = (:left, :center)
-#ax2.xticklabelsvisible = false
-##ax2.xticklabelsvisible = false
-#ax2.xlabelvisible = false
+    #linkxaxes!(ax1,ax2)
+    CairoMakie.xlims!(0.02,4.0)
 
-#linkxaxes!(ax1,ax2)
-CairoMakie.xlims!(0.02,1.0)
 
-axislegend(ax1; position = :rt, labelsize = 15)
+    axislegend(ax1; position = :rt, labelsize = 15)
+    
+    f
+end
+f = plotOptimalRange();
 save("plots/OptimizedRange.pdf", f)
-f
+ f = with_theme(plotOptimalRange, theme_black())
+save("plots/OptimizedRange_dark.pdf", f)
+

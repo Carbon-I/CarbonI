@@ -46,7 +46,7 @@ gas_array = ["ch4", "co2", "n2o", "h2o", "co", "hdo", "c2h6"];
 setupFile = "/home/cfranken/code/gitHub/CarbonI/src/yaml/carbon-i.yaml"
 n_layers = 10
 #indLR = 8:260
-indLR2 = 260:499
+indLR2 = 260:493
 #indLR = 7:410
 cls        = Dict(gas => 1550.0 for gas in gas_array)
 cls["h2o"] = 150.0

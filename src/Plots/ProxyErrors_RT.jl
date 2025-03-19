@@ -2,7 +2,7 @@
 using JLD2, CairoMakie, ColorSchemes, LaTeXStrings, Polynomials
 
 CS = ColorSchemes.seaborn_colorblind
-include("CI_colors.jl")
+include(joinpath(@__DIR__, "src/Plots", "CI_colors.jl"))
 # Load spectra and retrievals
 @load "simulated_rads_all.jld2" R_conv_carbonI_dict
 @load "mw2_fits_all.jld2"

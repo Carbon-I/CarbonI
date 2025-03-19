@@ -10,7 +10,7 @@ include("./src/Plots/CI_colors.jl")
 wl = 2035:Δwl:2385
 
 # Define an instrument:
-cM, wl_ci = CarbonI.create_carbonI_conv_matrix(wl)
+cM, wl_ci = CarbonI.create_carbonI_conv_matrix_cbe(wl)
 
 
 parameters = parameters_from_yaml("/home/cfranken/code/gitHub/CarbonI/src/yaml/carbon-i.yaml")

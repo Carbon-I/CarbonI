@@ -18,7 +18,7 @@ include("./src/Plots/CI_colors.jl")
 wl = 2035:Δwl:2385
 
 # Define an instrument operator (for Carbon-I and EMIT):
-cM, wl_ci = CarbonI.create_carbonI_conv_matrix(wl)
+cM, wl_ci = CarbonI.create_carbonI_conv_matrix_cbe(wl)
 cM_emit, wl_emit = CarbonI.create_emit_conv_matrix(wl)
 
 # Load default scenario and run the RT model (the fit has the same input, T, H2O and other profiles could be shuffled here to create inconsistencies)
