@@ -2,7 +2,7 @@
 using Unitful
 using CarbonI
 
-Base.@kwdef mutable struct Scenario
+Base.@kwdef struct Scenario
     ### Characteristics of the scenario 
     lat::Float64
     lon::Float64
@@ -44,12 +44,12 @@ function generic_scenario(lat::Float64, lon::Float64, sza::Float64, wind_speed, 
 end
 
 
-Base.@kwdef mutable struct Constants
+Base.@kwdef struct Constants
     g = 9.81u"m/s^2"
     p = 100000u"kg/m/s^2" # aka Pa
 end
 
-Base.@kwdef mutable struct molar_mass
+Base.@kwdef struct molar_mass
     co2 = 0.04401u"kg/mol"
     ch4 = 0.01604u"kg/mol"
     h2o = 0.018015u"kg/mol"
