@@ -19,6 +19,7 @@ Base.@kwdef mutable struct InstrumentSpecs
     dark_current
     SSI
     FWHM::Float64
+    FWHM_gaussian::Float64
     lower_wavelength::Float64
     upper_wavelength::Float64 
     modelling_Δwl::Float64
@@ -37,6 +38,7 @@ function build_instrument(;FPA_quantum_efficiency::Float64,
                               dark_current,
                               SSI,
                               FWHM::Float64,
+                              FWHM_gaussian::Float64,
                               lower_wavelength::Float64,
                               upper_wavelength::Float64,
                               pixel_size_global,
@@ -55,7 +57,7 @@ function build_instrument(;FPA_quantum_efficiency::Float64,
        
         cM, wl_ci, lociBox = CarbonI.create_carbonI_conv_matrix(modelling_wl,
 	                                                            instrument_wl;
-												                FWHM,
+												                FWHM=FWHM_gaussian,
 												                SSI,
 												                verbose_return=true); 
        
@@ -65,6 +67,7 @@ function build_instrument(;FPA_quantum_efficiency::Float64,
                    dark_current=dark_current,
                    SSI=SSI,
                    FWHM=FWHM,
+                   FWHM_gaussian=FWHM_gaussian,
                    lower_wavelength=lower_wavelength,
                    upper_wavelength=upper_wavelength,
                    modelling_Δwl=modelling_Δwl,
@@ -94,6 +97,7 @@ function requirement_instrument()
         dark_current = 10e3u"1/s",
         SSI = 1.0u"nm",
         FWHM = 2.5,
+        FWHM_gaussian = 2.2,
         lower_wavelength = 2040.0,
         upper_wavelength = 2368.0,
         pixel_size_global = 400u"m",
@@ -110,6 +114,7 @@ function cbe_instrument()
         dark_current = 5e3u"1/s",
         SSI = 0.7u"nm",
         FWHM = 1.93,
+        FWHM_gaussian = 0.65,
         lower_wavelength = 2036.0,
         upper_wavelength = 2372.0,
         pixel_size_global = 345u"m",

@@ -24,7 +24,7 @@ begin
 	using InstrumentOperator, Unitful, Interpolations, DiffResults
 	using NCDatasets, Polynomials, LinearAlgebra, SpecialPolynomials
 	using Statistics 
-	using PrettyTables  
+	using PrettyTables 
 end  
 
 # ╔═╡ d687e5b4-7bb4-42e0-b150-374e43790254
@@ -35,11 +35,17 @@ begin
 end
 	
 
-# ╔═╡ 3c719593-275b-4c74-920d-79bd9fb0487f
-
-
-# ╔═╡ d56abd97-7325-4205-b82d-763370c4a254
-
+# ╔═╡ 54f694fd-440c-4cf9-90f8-7358632d6be9
+html"""
+<style>
+	main {
+		margin: 0 auto;
+		max-width: 2500px;
+    	padding-left: max(160px, 20%);
+    	padding-right: max(160px, 20%);
+	}
+</style>
+"""
 
 # ╔═╡ 82179d5c-2c9f-4671-b6f9-e0a61a113527
 begin
@@ -63,12 +69,29 @@ begin
 
 end
 
+# ╔═╡ c685098a-f692-48df-bbac-891d44949e17
+begin
+
+	# Reference
+	scenario = CarbonI.reference_scenario() 
+	reference_req_global_ppb = Dict("ch4" => 5, "co2" => 1000, "co" => 25)
+	reference_req_target_ppb = Dict("ch4" => 16, "co2" => 4000, "co" => 80)
+	l1_2_rounded = Dict("ch4" => 175u"kg/hr", "co2" => 100000u"kg/hr", "co" => 1750u"kg/hr")
+	l1_3_rounded = Dict("ch4" => 65u"kg/hr", "co2" => 50000u"kg/hr", "co" => 1000u"kg/hr")
+	
+
+	# Stressing
+	#scenario = CarbonI.stressing_scenario() 
+	#reference_req_global_ppb = Dict("ch4" => 8, "co2" => 1400, "co" => 40)
+	#reference_req_target_ppb = Dict("ch4" => 30, "co2" =>4500, "co" => 135)
+	#l1_2_rounded = Dict("ch4" => 175u"kg/hr", "co2" => 100000u"kg/hr", "co" => 1750u"kg/hr")
+	#l1_3_rounded = Dict("ch4" => 65u"kg/hr", "co2" => 50000u"kg/hr", "co" => 1000u"kg/hr")
+
+end
+
 # ╔═╡ 7ad80f67-f716-438b-85f3-958aae70120f
 begin
-	# Set up scenario
-	
-	#scenario = CarbonI.stressing_scenario() 
-	scenario = CarbonI.reference_scenario() 
+	# Set up scenario 
 
 	soil_req, x_req, solarIrr_req, σ_matrix_req, profile_req, h_req, Sₐ_req = setup_data(scenario, req_specs)
 	soil_cbe, x_cbe, solarIrr_cbe, σ_matrix_cbe, profile_cbe, h_cbe, Sₐ_cbe = setup_data(scenario, cbe_specs);
@@ -78,9 +101,6 @@ end
 
 # ╔═╡ 68fde8b2-2ee0-4ee1-9c2c-fc9b6992fbfa
 scenario
-
-# ╔═╡ 423a4dc0-ed56-4b04-ad4e-b43b5679c938
-
 
 # ╔═╡ 57adfa63-6bb5-42f6-8f8f-f2bc4486fc92
 begin
@@ -198,8 +218,7 @@ end
 # ╔═╡ b96b75a8-e2f0-46d6-9b2e-93e26b7e0201
 begin
 
-reference_req_global_ppb = Dict("ch4" => 5, "co2" => 1000, "co" => 25)
-reference_req_target_ppb = Dict("ch4" => 16, "co2" => 4000, "co" => 80)
+
 
 md"""
 Margin between Section E1 Req and CBE
@@ -233,14 +252,10 @@ CO | $(uts(l1_2["co"]))  | $(uts(l1_3["co"])) |
 """
 end
 
-# ╔═╡ 233a7657-db40-4614-ad29-88c1ae0aabe8
-
-
 # ╔═╡ ef030b36-6dca-482b-8da4-0505d18bfaec
 # We round the above L1-2 and L1-3 requirements to:
 begin
-	l1_2_rounded = Dict("ch4" => 175u"kg/hr", "co2" => 100000u"kg/hr", "co" => 2000u"kg/hr")
-	l1_3_rounded = Dict("ch4" => 65u"kg/hr", "co2" => 50000u"kg/hr", "co" => 1000u"kg/hr")
+
 
 	l1_2_margin = Dict()
 	l1_3_margin = Dict()
@@ -284,23 +299,16 @@ CO | $(uts(l1_2_margin_ppb["co"]))  | $(uts(l1_3_margin_ppb["co"])) |
 """
 end
 
-# ╔═╡ 3f62c456-2c4d-4dd4-ace5-328dd331c12c
-
-
-# ╔═╡ 931e6769-3a7e-48e4-85c8-f9a256facd10
-
-
 # ╔═╡ Cell order:
+# ╠═54f694fd-440c-4cf9-90f8-7358632d6be9
 # ╟─ddbfa6eb-6233-4b48-bf37-18023d54fb9d
 # ╠═19d32bc0-8a70-4f66-a0a5-7054799df57c
-# ╠═3c719593-275b-4c74-920d-79bd9fb0487f
-# ╠═d56abd97-7325-4205-b82d-763370c4a254
 # ╠═d687e5b4-7bb4-42e0-b150-374e43790254
 # ╠═b71f5796-ff9d-4a0c-b973-d4de8463bdfe
 # ╠═82179d5c-2c9f-4671-b6f9-e0a61a113527
+# ╠═c685098a-f692-48df-bbac-891d44949e17
 # ╠═7ad80f67-f716-438b-85f3-958aae70120f
 # ╠═68fde8b2-2ee0-4ee1-9c2c-fc9b6992fbfa
-# ╠═423a4dc0-ed56-4b04-ad4e-b43b5679c938
 # ╠═57adfa63-6bb5-42f6-8f8f-f2bc4486fc92
 # ╠═dde12853-6ea9-4e5e-a413-3e04dce9355a
 # ╠═8da5074c-5822-4e76-8a1d-d698482bccb0
@@ -316,8 +324,5 @@ end
 # ╠═b1976cb5-2bdf-476d-827d-82e872209d19
 # ╠═b96b75a8-e2f0-46d6-9b2e-93e26b7e0201
 # ╠═bcb185f9-dc1c-4313-b99e-0df1e8bdd09b
-# ╠═233a7657-db40-4614-ad29-88c1ae0aabe8
 # ╠═ef030b36-6dca-482b-8da4-0505d18bfaec
 # ╠═776ed10e-a1f5-4b06-b160-cfa42b141cc5
-# ╠═3f62c456-2c4d-4dd4-ace5-328dd331c12c
-# ╠═931e6769-3a7e-48e4-85c8-f9a256facd10
