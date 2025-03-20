@@ -26,12 +26,16 @@ end
 
 med_dry = [quantile(filter(is_in_dry,d).cloud_free_fraction02,[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]) for d in datasets]
 med_wet = [quantile(filter(is_in_wet,d).cloud_free_fraction02,[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]) for d in datasets]
+med_all = [quantile(d.cloud_free_fraction02,[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]) for d in datasets]
 
 cf_mean_dry = [mean(filter(is_in_dry,d).cloud_free_fraction02) for d in datasets]
 cf_mean_wet = [mean(filter(is_in_wet,d).cloud_free_fraction02) for d in datasets]
 
 percentiles_wet = mapreduce(permutedims, vcat, med_wet)
 percentiles_dry = mapreduce(permutedims, vcat, med_dry)
+percentiles_all = mapreduce(permutedims, vcat, med_all )
+CloudStats = [x percentiles_all[:,5]];
+writedlm("data/CloudStatsCentralAmazonia.dat", CloudStats, delim='\t')
 
 include(joinpath(@__DIR__, "Plots", "CI_colors.jl"))
 
