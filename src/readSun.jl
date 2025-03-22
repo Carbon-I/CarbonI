@@ -1,4 +1,5 @@
-DS = Dataset("data/solar_irr.nc")
+sunFile = joinpath(dirname(pathof(CarbonI)),"../", "data/solar_irr.nc")
+DS = Dataset(sunFile)
 wlSol = 1e3*DS["wl"][:]
 solar_irr = 1e3*DS["solar_irr"][:] # convert to mW/m2/nm
 close(DS)
