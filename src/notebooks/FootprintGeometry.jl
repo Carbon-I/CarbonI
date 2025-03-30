@@ -1,19 +1,19 @@
-################################################################################
-# Spherical Earth constants (in kilometers):
-################################################################################
-const R_EARTH = 6378.137  # Approx. Earth radius
-
-################################################################################
-# Helper rotation matrices about x- and y- axes (intrinsic rotations):
-################################################################################
 using LinearAlgebra
 using StaticArrays
 
+################################################################################
+# Constants
+################################################################################
+const R_EARTH = 6378.137  # Spherical Earth radius (km)
+
+################################################################################
+# Basic geometry helpers
+################################################################################
 """ Rotation matrix about the x-axis by angle θ. """
 function rotX(θ)
     c = cos(θ)
     s = sin(θ)
-    return [
+    @SMatrix [
         1.0   0.0   0.0
         0.0    c    -s
         0.0    s     c
@@ -24,37 +24,30 @@ end
 function rotY(θ)
     c = cos(θ)
     s = sin(θ)
-    return [
+    @SMatrix [
          c   0.0    s
         0.0  1.0   0.0
         -s   0.0    c
     ]
 end
 
-################################################################################
-# Convert from geodetic latitude/longitude (spherical approximation) to ECEF.
-#   lat, lon in radians
-#   radius = R_EARTH + satellite altitude (km) if for a satellite.
-################################################################################
-function latlon_to_ecef(lat::Float64, lon::Float64, radius::Float64)
-    x = radius * cos(lat) * cos(lon)
-    y = radius * cos(lat) * sin(lon)
-    z = radius * sin(lat)
-    return SVector{3}(x, y, z)
+"""Convert (lat, lon) in radians + radius to ECEF coordinates (x, y, z)."""
+function latlon_to_ecef(lat::Float64, lon::Float64, r::Float64)
+    x = r * cos(lat) * cos(lon)
+    y = r * cos(lat) * sin(lon)
+    z = r * sin(lat)
+    return @SVector [x, y, z]
 end
 
-################################################################################
-# Convert ECEF to geodetic latitude/longitude on a spherical Earth.
-#   returns (lat, lon) in radians.
-################################################################################
+"""Convert ECEF (x, y, z) to spherical lat/lon in radians."""
 function ecef_to_latlon(pos::SVector{3,Float64})
     x, y, z = pos
-    # Spherical Earth:
-    r_xy = sqrt(x^2 + y^2)  # projection in equatorial plane
+    r_xy = sqrt(x^2 + y^2)
     lat  = atan(z, r_xy)
     lon  = atan(y, x)
     return (lat, lon)
 end
+
 
 ################################################################################
 # Build local East, North, Up (ENU) axes at the sub-satellite point (lat0, lon0).
@@ -209,7 +202,6 @@ end
 # altitude = 700 km, with pitch=2°, roll=-1° (all angles in degrees).
 # Let's compute the relative lat/lon shift (in degrees).
 #
-
 
 function example()
     lat0_deg  = 10.0
