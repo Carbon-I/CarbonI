@@ -70,7 +70,7 @@ for (_sza, sza) in enumerate(sza_range)
 		alb = broadband_albedo[_alb]
 
 		# Compute baseline spectrally resolved albedo
-		refl   = soil(specs.modelling_wl) * alb/mean_base_albedo;
+		refl   = ones(length(specs.modelling_wl)) * alb;
 		error = calc_rel_error(specs, x, solarIrr, refl, sza, σ_matrix, profile, h, ins, Sₐ)
 
 		for key in ["ch4", "co2", "h2o", "hdo", "n2o", "co", "co213", "c2h6"]

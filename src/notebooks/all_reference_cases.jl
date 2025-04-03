@@ -104,8 +104,8 @@ scenario
 
 # ╔═╡ 57adfa63-6bb5-42f6-8f8f-f2bc4486fc92
 begin
-	refl_req   = soil_req(req_specs.modelling_wl) * scenario.broadband_albedo/mean_base_albedo;
-	refl_cbe   = soil_cbe(cbe_specs.modelling_wl) * scenario.broadband_albedo/mean_base_albedo
+	refl_req   = scenario.surface_albedo(req_specs.modelling_wl) 
+	refl_cbe   = scenario.surface_albedo(req_specs.modelling_wl) 
 	error_req, F_req = calc_rel_error(req_specs, x_req, solarIrr_req, refl_req, scenario.sza, σ_matrix_req, profile_req, h_req, ins_req, Sₐ_req, return_F=true) 
 	error_cbe, F_cbe = calc_rel_error(cbe_specs, x_cbe, solarIrr_cbe, refl_cbe, scenario.sza, σ_matrix_cbe, profile_cbe, h_cbe, ins_cbe, Sₐ_cbe, return_F=true) 
 end
@@ -116,7 +116,7 @@ begin
 	header = ["Species","Albedo", "Wind", "Global Mode CBE", "Global Mode Req", "Target Mode CBE", "Target Mode Req"]
 	data_ppb = []
 	for key in ["ch4", "co2", "co", "hdo", "n2o", "h2o", "c2h6"]
-		push!(data_ppb, [key, scenario.broadband_albedo, 
+		push!(data_ppb, [key, mean(refl_req), 
 								scenario.wind_speed, 
 								error_cbe[key] / sqrt(cbe_specs.coadd_rate), 
 								error_req[key] / sqrt(req_specs.coadd_rate), 
@@ -130,7 +130,7 @@ begin
 	# In kg / hr
 	data = []
 	for key in ["ch4", "co2", "co", "h2o", "hdo", "n2o", "c2h6"]
-		push!(data, [key, scenario.broadband_albedo, 
+		push!(data, [key, mean(refl_req), 
 								scenario.wind_speed, 
 
 	# Global mode CBE

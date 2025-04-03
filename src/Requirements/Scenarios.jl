@@ -1,6 +1,6 @@
 
 using Unitful
-using CarbonI
+using CarbonI, Interpolations
 
 Base.@kwdef struct Scenario
     ### Characteristics of the scenario 
@@ -9,8 +9,7 @@ Base.@kwdef struct Scenario
     sza::Float64
     profile_hr
     wind_speed
-    broadband_albedo::Float64
-
+    surface_albedo # Has to be an interpolation function!
 end
 
 
@@ -20,9 +19,11 @@ function reference_scenario()
     sza = 50.0
     wind_speed = 2.0u"m/s"
     broadband_albedo = 0.15
+    wl = 2030:20:2400
+    flat_albedo = LinearInterpolation(wl,zeros(length(wl)) .+ broadband_albedo, extrapolation_bc=Interpolations.Flat());    
     # make this flat (or quartz like)
     profile_hr = CarbonI.read_atmos_profile_MERRA2(CarbonI.default_merra_file, lat, lon, 7);
-    sce = Scenario(lat=lat, lon=lon, sza=sza, profile_hr=profile_hr, wind_speed=wind_speed,broadband_albedo=broadband_albedo)
+    sce = Scenario(lat=lat, lon=lon, sza=sza, profile_hr=profile_hr, wind_speed=wind_speed,surface_albedo=flat_albedo)
     return sce
 end
 
@@ -31,9 +32,10 @@ function stressing_scenario()
     lon = -62.0
     sza = 30.0
     wind_speed = 2.5u"m/s"
-    broadband_albedo = 0.06
+    clima_alb = readdlm(CarbonI.albedo_file,',', skipstart=1)
+    tropical_forest_albedo = CubicSplineInterpolation(300:2400,clima_alb[:,2]/1.508, extrapolation_bc=Interpolations.Flat());
     profile_hr = CarbonI.read_atmos_profile_MERRA2(CarbonI.default_merra_file, lat, lon, 7);
-    sce = Scenario(lat=lat, lon=lon, sza=sza, profile_hr=profile_hr, wind_speed=wind_speed, broadband_albedo=broadband_albedo)
+    sce = Scenario(lat=lat, lon=lon, sza=sza, profile_hr=profile_hr, wind_speed=wind_speed, surface_albedo=tropical_forest_albedo)
     return sce
 end
 
