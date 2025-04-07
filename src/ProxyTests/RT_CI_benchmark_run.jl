@@ -10,6 +10,8 @@ R_conv_carbonI_dict = Dict{Tuple{Float64, Float64,Float64, Float64}, Vector{Floa
 #R_conv_emit_dict = Dict{Tuple{Float64, Float64}, Vector{Float64}}()
 
 parameters = parameters_from_yaml("/home/cfranken/code/gitHub/CarbonI/src/yaml/carbon-i.yaml")
+model = model_from_parameters(parameters);
+a = rt_run(model)
 
 # Set of runs:
 aods = exp.(-8:0.2:3)
