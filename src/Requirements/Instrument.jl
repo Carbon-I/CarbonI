@@ -92,8 +92,8 @@ end
 function requirement_instrument()
     inst = build_instrument(
         FPA_quantum_efficiency = 0.80,
-        bench_efficiency = 0.563, # Updated to get to the required total efficiency (45%)
-        readout_noise = 120.0,
+        bench_efficiency = 0.537, # Updated to get to the required total efficiency (43%)
+        readout_noise = 121.3, # Includes quantization error
         dark_current = 5e3u"1/s",
         SSI = 0.7u"nm",
         FWHM = 2.5,
@@ -109,8 +109,8 @@ end
 function cbe_instrument()
     inst = build_instrument(
         FPA_quantum_efficiency = 0.88,
-        bench_efficiency = 0.658,
-        readout_noise = 100.0,
+        bench_efficiency = 0.657,
+        readout_noise = 101.5, # Includes quantization error
         dark_current = 3e3u"1/s",
         SSI = 0.7u"nm",
         FWHM = 1.93,
