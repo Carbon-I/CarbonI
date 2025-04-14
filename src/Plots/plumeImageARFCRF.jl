@@ -50,7 +50,7 @@ f
 save("plots/PixelEnhancements30M.pdf",f)
 
 
-f = Figure(resolution=(450,400), title="Vertical Optical Depth of Trace Gases", fontsize=16,backgroundcolor = :transparent)
+f = Figure(resolution=(450,400), title="Vertical Optical Depth of Trace Gases", fontsize=18,backgroundcolor = :transparent,fonts = (; regular = "Helvetica Condensed Light", bold="Helvetica Condensed Bold"))
 ax1 = Axis(f[1,1],aspect = DataAspect(),  title="Carbon-I Global Mode (200kg/hr)",xlabel = "meters",ylabel = "meters") 
 sample=convert(Int,330/5)
 hm = CairoMakie.heatmap!(ax1, dim_x[30:sample:end],dim_y[30:sample:end],  scene_global[30:sample:end,30:sample:end]./noise_global, colormap=:OrRd_9)
@@ -65,19 +65,19 @@ save("plots/PixelEnhancements300M.pdf",f)
 
 ### All in One:
 function plotAll()
-    f = Figure(resolution=(450,1000), title="Vertical Optical Depth of Trace Gases", fontsize=16,backgroundcolor = :transparent)
-    ax1 = Axis(f[1,1],aspect = DataAspect(),  title="LES 5m simulation of a 200kg/hr point source") 
+    f = Figure(resolution=(450,1000), title="Vertical Optical Depth of Trace Gases", fontsize=18)
+    ax1 = Axis(f[1,1],aspect = DataAspect(),  title="LES 5m 200kg/hr point source simulation") 
     sample=convert(Int,330/5)
-    hm = CairoMakie.heatmap!(ax1, dim_x,dim_y,  C_sum, colormap=:OrRd_9)
+    hm = CairoMakie.heatmap!(ax1, dim_x,dim_y,  C_sum, colormap=:viridis)
     hideydecorations!(ax1)
     hidexdecorations!(ax1)
     CairoMakie.xlims!(-200,700)
     CairoMakie.ylims!(-200,700)
 
-    cb = Colorbar(f[1,2], hm,  label = L"\text{\Delta \Omega(CH_4)} (mol/m²)",  labelpadding = 10, ticklabelpad = 2, width = 10,height = Relative(0.85))
+    cb = Colorbar(f[1,2], hm,  label = L"\text{\Delta \Omega(CH_4)} (mol/m²)",  labelpadding = 2, ticklabelpad = 2, width = 20)
     #save("plots/PixelLES.pdf",f)
 
-    ax2 = Axis(f[2,1], aspect = DataAspect(),title="Carbon-I Target Mode (200kg/hr)") 
+    ax2 = Axis(f[2,1], aspect = DataAspect(),title="Observed in Target Mode") 
     sample=convert(Int,35/5)
     hm = CairoMakie.heatmap!(ax2, dim_x[1:sample:end],dim_y[1:sample:end],  scene_target[1:sample:end,1:sample:end]./noise_target, colormap=:OrRd_9)
     hideydecorations!(ax2)
@@ -85,13 +85,13 @@ function plotAll()
     #CairoMakie.ylims!(1e-5,1)
     CairoMakie.xlims!(-200,700)
     CairoMakie.ylims!(-200,700)
-    cb2 = Colorbar(f[2,2], hm,  label = L"\text{\Delta \Omega(CH_4)/1\sigma}",  labelpadding = 10, ticklabelpad = 2, width = 10)
+    cb2 = Colorbar(f[2,2], hm,  label = L"\text{\Delta \Omega(CH_4)/1\sigma}",  labelpadding = 2, ticklabelpad = 2, width = 20)
     #f
     #save("plots/PixelEnhancements30M.pdf",f)
 
 
     #f = Figure(resolution=(450,400), title="Vertical Optical Depth of Trace Gases", fontsize=16,backgroundcolor = :transparent)
-    ax3 = Axis(f[3,1],aspect = DataAspect(),  title="Carbon-I Global Mode (200kg/hr)") 
+    ax3 = Axis(f[3,1],aspect = DataAspect(),  title="Observed in Global Mode") 
     sample=convert(Int,330/5)
     start = 1
     hm = CairoMakie.heatmap!(ax3, dim_x[start:sample:end],dim_y[start:sample:end],  scene_global[start:sample:end,start:sample:end]./noise_global, colormap=:OrRd_9)
@@ -99,12 +99,20 @@ function plotAll()
     hidexdecorations!(ax3)
     CairoMakie.xlims!(-200,700)
     CairoMakie.ylims!(-200,700)
-
-    cb3 = Colorbar(f[3,2], hm,  label = L"\text{\Delta \Omega(CH_4)/1\sigma}",  labelpadding = 10, ticklabelpad = 2, width = 10)
+    
+    cb3 = Colorbar(f[3,2], hm,  label = L"\text{\Delta \Omega(CH_4)/1\sigma}",  labelpadding = 2, ticklabelpad = 2, width = 20)
+    colgap!(f.layout,-30.0)
     f
 end
-f = with_theme(plotAll, theme_black())
+#f = with_theme(plotAll, theme_black())
+
+
 #CairoMakie.save("../../plots/ch4_fit_citb_dark.pdf", f)
-save("plots/PixelEnhancementsAll_dark.pdf",f)
+#save("plots/PixelEnhancementsAll_dark.pdf",f)
+#set_theme!(theme_ggplot2())
+f = plotAll()
+save("plots/final/SectionD-Box2-PixelEnhancementsAll_light.eps",f)
+save("plots/final/Box2-PixelEnhancementsAll_light.eps",f)
+save("plots/final/Box2-PixelEnhancementsAll_light.png",f)
 
 

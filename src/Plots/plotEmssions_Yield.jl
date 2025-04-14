@@ -86,8 +86,10 @@ function plot_ch4_unc()
 end
 fig = plot_data_yield()
 CairoMakie.save("plots/final/oco2_yield.pdf", fig)
+CairoMakie.save("plots/final/SectionD-D3-oco2_yield.eps", fig)
 fig = plot_ch4_unc()
 CairoMakie.save("plots/final/ch4_uncertainties.pdf", fig)
+CairoMakie.save("plots/final/SectionD-D10-ch4_flux-uncertainties.eps", fig)
 
 fig2 = with_theme(plot_data_yield, theme_black())
 CairoMakie.save("plots/final/oco2_yield_dark.pdf", fig2)

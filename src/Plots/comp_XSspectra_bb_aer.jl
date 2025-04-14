@@ -7,7 +7,7 @@ using vSmartMOM
 using vSmartMOM.Scattering
 using CarbonI
 
-include("src/Plots/CI_colors.jl")
+include("src/Plots/CI_colorsNew.jl")
 clima_alb = readdlm(CarbonI.albedo_file,',', skipstart=1)
 
 FT = Float64
@@ -140,7 +140,7 @@ aer_size = 0.01:0.001:3
 n = 8 #normalization wavelength
 
 function plotAeroSizes()
-    f = Figure(resolution=(800,400), title="Aerosol Microphysics", fontsize=18, backgroundcolor = :transparent)
+    f = Figure(resolution=(800,400), title="Aerosol Microphysics", fontsize=18, backgroundcolor = :transparent,fonts = (; regular = "Helvetica Condensed Light", bold="Helvetica Condensed Bold"))
     ax1 = Axis(f[1,2], yminorgridvisible = true,  backgroundcolor = :transparent,yminorticks = IntervalsBetween(5), xlabel="Wavelength (μm)",ylabel="Scattering cross section",  title="Normalized Scattering Cross Sections",yscale=log10, xscale=log10)
     fill_between!(ax1, [0.76,0.78], [1e-2,1e-2], [9,9], color = (CS[4],0.6))
     fill_between!(ax1, [1.26,1.28], [1e-2,1e-2], [9,9], color = (CS[4],0.6))
@@ -189,12 +189,67 @@ function plotAeroSizes()
     f
 end
 f = plotAeroSizes()
-save("plots/AerosolMicrophysics.pdf", f)
+save("plots/final/AerosolMicrophysics.pdf", f)
+
 f = with_theme(plotAeroSizes, theme_black())
-save("plots/AerosolMicrophysics_dark.pdf", f)
+save("plots/final/AerosolMicrophysics_dark.pdf", f)
+
+function plotAeroSizes_v2()
+    f = Figure(resolution=(800,350), title="Aerosol Size Distribution", fontsize=18, backgroundcolor = :transparent, fonts = (; regular = "Helvetica Condensed Light", bold="Helvetica Condensed Bold"))
+    ax1 = Axis(f[1,2], yminorgridvisible = true,  yminorticks = IntervalsBetween(5), xlabel="Wavelength (μm)",ylabel="Scattering cross section",  title="Normalized Scattering Cross Sections",yscale=log10, xscale=log10)
+    fill_between!(ax1, [0.76,0.78], [1e-2,1e-2], [9,9], color = (CS[4],0.3))
+    fill_between!(ax1, [1.26,1.28], [1e-2,1e-2], [9,9], color = (CS[4],0.3))
+    fill_between!(ax1, [1.55,1.75], [1e-2,1e-2], [9,9], color = (CS[5],0.3))
+    fill_between!(ax1, [2.04,2.38], [1e-2,1e-2], [9,9], color = (CS[9],0.3))
+    text!(ax1,0.76, 1.5, text = L"\text{O_2 A}", rotation=π/2, align = (:left,:bottom),fontsize =15)
+    text!(ax1,1.25, 1.0, text = L"\text{O_2 1.27\mu\,m}", rotation=π/2, align = (:left,:bottom),fontsize =15)
+    text!(ax1,1.75, 1.0, text = L"\text{CO_2/CH_4}", rotation=π/2, align = (:left,:bottom),fontsize =15)
+    text!(ax1,2.38, 0.6, text = L"\text{CO_2/CH_4/N_2O}", rotation=π/2, align = (:left,:bottom),fontsize =15)
+    #fill_between!(ax1, [0.76,0.78], [1e-2,1e-2], [9,9], color = (CS[4],0.2))
+    lines!(ax1, wl/1e3, scattXS[1,1,1,:]./scattXS[1,1,1,n],  label="Fine Mode", color=CarbonI_colors[4], linewidth=3)
+    #lines!(ax1, wl/1e3, scattXS[1,1,2,:]./scattXS[1,1,2,n],  label=L"\text{r_g=0.08, \sigma_g=1.6}", color=CarbonI_colors[1], linewidth=3, linestyle=:dash)
+    #lines!(ax1, wl/1e3, scattXS[1,2,1,:]./scattXS[1,2,1,n],  label=L"\text{r_g=0.13, \sigma_g=1.3}", color=CarbonI_colors[7], linewidth=3)
+    #lines!(ax1, wl/1e3, scattXS[1,2,2,:]./scattXS[1,2,2,n],  label=L"\text{r_g=0.13, \sigma_g=1.6}", color=CarbonI_colors[7], linewidth=3, linestyle=:dash)
+    lines!(ax1, wl/1e3, scattXS[1,3,2,:]./scattXS[1,3,2,n],  label="Coarser Mode", color=CarbonI_colors[5], linewidth=3)
+
+    #O2:
+
+
+    CairoMakie.xlims!(ax1, wl[1]/1e3, wl[end]/1e3)
+    CairoMakie.ylims!(ax1, 1e-2, 9)
+    xticks_values = [0.50, 0.750, 1.0, 1.5000, 2.0000, 2.5000]
+    xticks_labels = ["0.5", "0.75", "1.0", "1.5", "2.0", "2.5"]
+    ax1.xticks = (xticks_values, xticks_labels)
+
+    ax2 = Axis(f[1,1],xminorgridvisible = true,bottomspinecolor=:gray,leftspinecolor=:gray, xminorticks = IntervalsBetween(10), spinewidth=2, xlabel="Aerosol radius (μm)",ylabel="Number Density",  title="Aerosol Size Distribution",xscale=log10)
+    lines!(ax2, aer_size,pdf(LogNormal(log(0.08), log(1.3)), aer_size),  label="Finer Mode", color=CarbonI_colors[4], linewidth=3)
+    #lines!(ax2, aer_size,pdf(LogNormal(log(0.13), log(1.3)), aer_size),  label=L"\text{r_g=0.13, \sigma_g=1.3}", color=CarbonI_colors[7], linewidth=3)
+    #lines!(ax2, aer_size,pdf(LogNormal(log(0.13), log(1.6)), aer_size),  label=L"\text{r_g=0.13, \sigma_g=1.6}", color=CarbonI_colors[7], linewidth=3, linestyle=:dash)
+    lines!(ax2, aer_size,pdf(LogNormal(log(0.2), log(1.6)), aer_size),  label="Coarser Mode", color=CarbonI_colors[5], linewidth=3)
+    axislegend(ax2, position=:rt, labelsize =15)
+    CairoMakie.xlims!(ax2, 0.008, 1.100)
+    CairoMakie.ylims!(ax2, 0, 22)
+    # Define the desired ticks and labels
+    xticks_values = [0.01, 0.10, 1]
+    xticks_labels = ["0.01", "0.1", "1"]
+    yticks_values = [0.01, 0.1, 1]
+    yticks_labels = ["0.01", "0.1", "1.0"]
+
+    # Apply custom tick labels
+    ax2.xticks = (xticks_values, xticks_labels)
+    ax1.yticks = (yticks_values, yticks_labels)
+    hidespines!(ax2, :t, :r) # only top and right
+
+    f
+end
+f = with_theme(plotAeroSizes_v2, theme_ggplot2())
+save("plots/final/AerosolMicrophysic_v2.pdf", f)
+save("plots/final/Box-D3-AerosolMicrophysic_v2.eps", f)
+f = with_theme(plotAeroSizes_v2, theme_black())
+save("plots/final/AerosolMicrophysics_dark_v2.pdf", f)
 
 function plotAeroAlbedo()
-    f = Figure(resolution=(800,700), title="Aerosol Microphysics", fontsize=18, backgroundcolor = :transparent)
+    f = Figure(resolution=(800,700), title="Aerosol Microphysics", fontsize=18, backgroundcolor = :transparent, fonts = (; regular = "Helvetica Condensed Light", bold="Helvetica Condensed Bold"))
     ax1 = Axis(f[1,2],yminorgridvisible = true,  backgroundcolor = :transparent,yminorticks = IntervalsBetween(5), xlabel="Wavelength (μm)",ylabel="Scattering cross section",  title="Normalized Scattering Cross Sections",yscale=log10, xscale=log10)
     fill_between!(ax1, [0.76,0.78], [1e-2,1e-2], [9,9], color = (CS[4],0.6))
     fill_between!(ax1, [1.26,1.28], [1e-2,1e-2], [9,9], color = (CS[4],0.6))
@@ -226,7 +281,7 @@ function plotAeroAlbedo()
     lines!(ax2, aer_size,pdf(LogNormal(log(0.13), log(1.3)), aer_size),  label=L"\text{r_g=0.13, \sigma_g=1.3}", color=CarbonI_colors[7], linewidth=3)
     lines!(ax2, aer_size,pdf(LogNormal(log(0.13), log(1.6)), aer_size),  label=L"\text{r_g=0.13, \sigma_g=1.6}", color=CarbonI_colors[7], linewidth=3, linestyle=:dash)
     lines!(ax2, aer_size,pdf(LogNormal(log(0.2), log(1.6)), aer_size),  label=L"\text{r_g=0.20, \sigma_g=1.6}", color=CarbonI_colors[10], linewidth=3, linestyle=:dash)
-    axislegend(ax2, position=:rt, labelsize =12)
+    axislegend(ax2, position=:rt, labelsize =15)
     CairoMakie.xlims!(ax2, 0.008, 1.100)
     CairoMakie.ylims!(ax2, 0, 22)
     # Define the desired ticks and labels
@@ -254,7 +309,7 @@ function plotAeroAlbedo()
     f
 end
 
-f = plotAeroAlbedo()
-save("plots/AerosolMicrophysicsAlbedo.pdf", f)
+f = with_theme(plotAeroAlbedo, theme_ggplot2())
+save("plots/final/AerosolMicrophysicsAlbedo.pdf", f)
 f = with_theme(plotAeroAlbedo, theme_black())
-save("plots/AerosolMicrophysicsAlbedo_dark.pdf", f)
+save("plots/final/AerosolMicrophysicsAlbedo_dark.pdf", f)

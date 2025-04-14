@@ -81,7 +81,7 @@ profile, σ_matrix, indis, gasProfiles = CarbonI.reduce_profile(n_layers, profil
 p = Polynomial([0.2,0.0001,0.000001]);
 
 # Define an instrument:
-FWHM  = 1.7  # 
+FWHM  = 0.7  # 
 SSI  = 0.7
 kern1 = CarbonI.box_kernel(2*SSI, Δwl)
 kern2 = CarbonI.gaussian_kernel(FWHM, Δwl)
@@ -156,10 +156,10 @@ dark_current = 5e3u"1/s" # Dark current
 ins = InstrumentOperator.createGratingNoiseModel(ET, Pitch,FPA_QE, Bench_efficiency, Fnumber, SSI, (readout_noise), dark_current);   
 
 
-albs = 0.04:0.01:0.6
+albs = 0.03:0.01:0.6
 errors = zeros(length(albs), 8)
 result = DiffResults.JacobianResult(zeros(length(lociBox.ν_out)),x);
-
+global sza = 30.0
 for (i,alb) in enumerate(albs)
     sza = 30
     refl = alb.+0.0*soil(wl)
@@ -183,7 +183,7 @@ end
  
 n2o_error = CubicSplineInterpolation(albs, errors[:,5]/330)
 ch4_error = CubicSplineInterpolation(albs, errors[:,1]/1900)
-co2_error = CubicSplineInterpolation(albs, errors[:,2]/410)
+co2_error = CubicSplineInterpolation(albs, errors[:,2]/420)
 
 
 reference_albedos = [0.06, 0.15]
@@ -196,15 +196,15 @@ plot(albs, errors[:,5]/330, label="N2O", linewidth=2)
 scales = 0.05:0.1:50
 
 # Define cloud fractions:
-cloud_fracs = 0.0:0.02:0.95
+cloud_fracs = 0.0:0.02:0.99
 
 # Actual pixel area (in global mode)
-pixArea = 0.035 * 0.4
+pixArea = 0.0345 * 0.303 # (per single pixel, not super pixel)
 N_global = 12^2/pixArea
 N_target = 1^2/(0.035 * 0.035)
 # RSS errors
 ch4_error_global = sqrt.(n2o_error.(albs).^2 + ch4_error.(albs).^2);
-ch4_error_global_2D = ch4_error_global ./ sqrt.((1 .-cloud_fracs).*N_global)'
+ch4_error_global_2D = ch4_error_global ./ sqrt.((1 .-cloud_fracs).*N_global)' 
 ch4_error_target_2D = ch4_error_global ./ sqrt.((1 .-cloud_fracs).*N_target)'
 
 eff_pix_area = zeros(length(scales), length(cloud_fracs))
@@ -217,24 +217,26 @@ for (iS,scale) in enumerate(scales)
     end
 end
 
-f = Figure(resolution=(300,300), title="", fontsize=16)
+f = Figure(resolution=(300,300), title="", fontsize=16, backgroundcolor=:transparent)
 ax1 = Axis(f[1,1], ylabel="Cloud Fraction", xlabel="Albedo" )
-CairoMakie.xlims!(0.04,0.5)
-CairoMakie.ylims!(0,0.94)
+CairoMakie.xlims!(0.03,0.5)
+CairoMakie.ylims!(0,0.99)
 
-co = CairoMakie.contourf!(ax1, albs, cloud_fracs, ch4_error_global_2D*1900, levels=[0.5, 0.75, 1, 2, 3, 5,  10],  labels=true, colorrange=(0.01,10), colormap = (:viridis, 0.5), extendhigh = (:orange,0.4), extendlow = (:gray,0.4)); 
-CairoMakie.contour!(ax1, albs, cloud_fracs, ch4_error_global_2D*1900, levels=[0.5, 0.75, 1, 2, 3, 5, 10],  labels=true, colorrange=(0.01,10), labelsize = 14,labelcolor=:black, labelfont = :bold); 
-save("plots/StandardErrors_GlobalMode.pdf", f)
+co = CairoMakie.contourf!(ax1, albs, cloud_fracs, ch4_error_global_2D*1900, levels=[0.2,0.5, 0.75, 1, 2, 3, 5,  8,12],  labels=true, colorrange=(0.01,20), colormap = (:viridis, 0.5), extendhigh = (:orange,0.4), extendlow = (:gray,0.4)); 
+CairoMakie.contour!(ax1, albs, cloud_fracs, ch4_error_global_2D*1900, levels=[ 0.75, 1, 2, 3, 5, 8],  labels=true, colorrange=(0.01,20), labelsize = 14,labelcolor=:black, labelfont = :bold); 
+save("plots/final/StandardErrors_GlobalMode.pdf", f)
+save("plots/final/StandardErrors_GlobalMode.eps", f)
 f
 
-f = Figure(resolution=(300,300), title="", fontsize=16)
+f = Figure(resolution=(300,300), title="", fontsize=16, backgroundcolor=:transparent)
 ax1 = Axis(f[1,1], ylabel="Cloud Fraction", xlabel="Albedo")#, title="Predicted Standard Error in Target Mode at 1km (in ppb) " )
-CairoMakie.xlims!(0.04,0.5)
-CairoMakie.ylims!(0,0.94)
+CairoMakie.xlims!(0.03,0.5)
+CairoMakie.ylims!(0,0.99)
 
-co = CairoMakie.contourf!(ax1, albs, cloud_fracs, ch4_error_target_2D*1900, levels=[1, 2, 3, 4,  5, 7.5, 10, 12.5],  labels=true, colorrange=(1,15), colormap = (:viridis, 0.5), extendhigh = (:orange,0.4), extendlow = (:gray,0.4)); 
-CairoMakie.contour!(ax1, albs, cloud_fracs, ch4_error_target_2D*1900, levels=[1, 2, 3, 4, 5,7.5, 10, 12.5],  labels=true, colorrange=(1,15), labelsize = 14,labelcolor=:black,labelfont = :bold); 
-save("plots/StandardErrors_TargetMode.pdf", f)
+co = CairoMakie.contourf!(ax1, albs, cloud_fracs, ch4_error_target_2D*1900, levels=[1, 2, 3, 4,  5, 7.5, 10, 15],  labels=true, colorrange=(1,20), colormap = (:viridis, 0.5), extendhigh = (:orange,0.4), extendlow = (:gray,0.4)); 
+CairoMakie.contour!(ax1, albs, cloud_fracs, ch4_error_target_2D*1900, levels=[1, 2, 3, 4, 5,7.5, 10, 15],  labels=true, colorrange=(1,20), labelsize = 14,labelcolor=:black,labelfont = :bold); 
+save("plots/final/StandardErrors_TargetMode.pdf", f)
+save("plots/final/StandardErrors_TargetMode.eps", f)
 f
 
 

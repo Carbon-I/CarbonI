@@ -141,7 +141,7 @@ h_c2h6[71:80] .= ratio;
 
 clima_alb = readdlm(CarbonI.albedo_file,',', skipstart=1)
 #soil = CubicSplineInterpolation(450:2500,r[:,140], extrapolation_bc=Interpolations.Flat());
-soil = CubicSplineInterpolation(300:2400,clima_alb[:,2]/1.16, extrapolation_bc=Interpolations.Flat());
+soil = CubicSplineInterpolation(300:2400,clima_alb[:,2]/1.5, extrapolation_bc=Interpolations.Flat());
 solarIrr = sol(wl);
 refl   = soil(wl);
 
@@ -167,7 +167,7 @@ for (i,FWHM) in enumerate(FWHMs)
     # Define an instrument:
     #FWHM  = 1.7  #
     # 2.7 times oversampling 
-    SSI  = FWHM/2.5
+    SSI  = FWHM/2.3
 
     #kern1 = CarbonI.box_kernel(2*SSI, Δwl)
     kern2 = CarbonI.gaussian_kernel(FWHM, Δwl)
@@ -223,8 +223,8 @@ ranger = max.(2373 .- FWHMs/3*480, 2035.0)
 k = Kernel.gaussian((1.5,))
 
 function plotOptimalRange()
-    f = Figure(resolution=(600,400),backgroundcolor = :transparent, title="", fontsize=20)
-    ax1 = Axis(f[1,1],backgroundcolor = :transparent,xscale=Makie.pseudolog10,xticks = [0.1, 0.4, 0.7, 1, 2, 3,4], xlabel="SSI (nm; FWHM=2.5xSSI)", ylabel="Precision (normalized by best)",title="SSI tradeoff for precision with fixed detector size" )
+    f = Figure(resolution=(550,400),backgroundcolor = :transparent, title="", fontsize=20,fonts = (; regular = "Helvetica Condensed Light", bold="Helvetica Condensed Bold"))
+    ax1 = Axis(f[1,1],xscale=Makie.pseudolog10,xticks = [0.1, 0.4, 0.7, 1, 2, 3,4], xlabel="SSI (nm)", ylabel="Precision (normalized by best)",title="SSI tradeoff for precision with fixed detector size" )
     CairoMakie.xlims!(0.02,1.0)
     CairoMakie.ylims!(0.95,3.5)
     CairoMakie.lines!(ax1, FWHMs/2.5,imfilter(errors[:,5]./minimum(errors[:,5]),k), label="N₂O",linewidth=2 ); 
@@ -245,12 +245,13 @@ function plotOptimalRange()
     CairoMakie.xlims!(0.02,4.0)
 
 
-    axislegend(ax1; position = :rt, labelsize = 15)
+    axislegend(ax1; position = :rt, labelsize = 18)
     
     f
 end
-f = plotOptimalRange();
-save("plots/OptimizedRange.pdf", f)
+f = with_theme(plotOptimalRange, theme_ggplot2());
+save("plots/final/OptimizedRange.pdf", f)
+save("plots/final/Box-D6-OptimizedRange.eps", f)
  f = with_theme(plotOptimalRange, theme_black())
-save("plots/OptimizedRange_dark.pdf", f)
+save("plots/final/OptimizedRange_dark.pdf", f)
 

@@ -92,6 +92,7 @@ CairoMakie.ylims!(ax2, -0.25, 0.25)
 
 f
 save("plots/ProxyRT_errorsCI_3.pdf", f)
+save("plots/final/SectionD-D12-ProxyRT_errorsCI_3.eps", f)
 
 
 
