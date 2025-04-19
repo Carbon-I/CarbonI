@@ -196,7 +196,7 @@ save("plots/final/AerosolMicrophysics_dark.pdf", f)
 
 function plotAeroSizes_v2()
     f = Figure(resolution=(800,350), title="Aerosol Size Distribution", fontsize=18, backgroundcolor = :transparent, fonts = (; regular = "Helvetica Condensed Light", bold="Helvetica Condensed Bold"))
-    ax1 = Axis(f[1,2], yminorgridvisible = true,  yminorticks = IntervalsBetween(5), xlabel="Wavelength (μm)",ylabel="Scattering cross section",  title="Normalized Scattering Cross Sections",yscale=log10, xscale=log10)
+    ax1 = Axis(f[1,2], yminorgridvisible = true,  yminorticks = IntervalsBetween(5), xlabel="Wavelength (μm)",ylabel="Scattering cross section", backgroundcolor=:transparent,  title="Normalized Scattering Cross Sections",yscale=log10, xscale=log10)
     fill_between!(ax1, [0.76,0.78], [1e-2,1e-2], [9,9], color = (CS[4],0.3))
     fill_between!(ax1, [1.26,1.28], [1e-2,1e-2], [9,9], color = (CS[4],0.3))
     fill_between!(ax1, [1.55,1.75], [1e-2,1e-2], [9,9], color = (CS[5],0.3))
@@ -221,7 +221,7 @@ function plotAeroSizes_v2()
     xticks_labels = ["0.5", "0.75", "1.0", "1.5", "2.0", "2.5"]
     ax1.xticks = (xticks_values, xticks_labels)
 
-    ax2 = Axis(f[1,1],xminorgridvisible = true,bottomspinecolor=:gray,leftspinecolor=:gray, xminorticks = IntervalsBetween(10), spinewidth=2, xlabel="Aerosol radius (μm)",ylabel="Number Density",  title="Aerosol Size Distribution",xscale=log10)
+    ax2 = Axis(f[1,1],xminorgridvisible = true,bottomspinecolor=:gray,leftspinecolor=:gray,backgroundcolor=:transparent, xminorticks = IntervalsBetween(10), spinewidth=2, xlabel="Aerosol radius (μm)",ylabel="Number Density",  title="Aerosol Size Distribution",xscale=log10)
     lines!(ax2, aer_size,pdf(LogNormal(log(0.08), log(1.3)), aer_size),  label="Finer Mode", color=CarbonI_colors[4], linewidth=3)
     #lines!(ax2, aer_size,pdf(LogNormal(log(0.13), log(1.3)), aer_size),  label=L"\text{r_g=0.13, \sigma_g=1.3}", color=CarbonI_colors[7], linewidth=3)
     #lines!(ax2, aer_size,pdf(LogNormal(log(0.13), log(1.6)), aer_size),  label=L"\text{r_g=0.13, \sigma_g=1.6}", color=CarbonI_colors[7], linewidth=3, linestyle=:dash)
@@ -242,8 +242,9 @@ function plotAeroSizes_v2()
 
     f
 end
-f = with_theme(plotAeroSizes_v2, theme_ggplot2())
-save("plots/final/AerosolMicrophysic_v2.pdf", f)
+#f = with_theme(plotAeroSizes_v2, theme_ggplot2())
+f = plotAeroSizes_v2()
+save("plots/final/Box-D3-AerosolMicrophysic_v2.pdf", f)
 save("plots/final/Box-D3-AerosolMicrophysic_v2.eps", f)
 f = with_theme(plotAeroSizes_v2, theme_black())
 save("plots/final/AerosolMicrophysics_dark_v2.pdf", f)

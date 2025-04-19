@@ -33,7 +33,7 @@ function stressing_scenario()
     sza = 35.0
     wind_speed = 2.0u"m/s"
     clima_alb = readdlm(CarbonI.albedo_file,',', skipstart=1)
-    tropical_forest_albedo = CubicSplineInterpolation(300:2400,clima_alb[:,2]/1.508, extrapolation_bc=Interpolations.Flat());
+    tropical_forest_albedo = CubicSplineInterpolation(300:5:2400,clima_alb[1:5:end,2]/1.508, extrapolation_bc=Interpolations.Flat());
     profile_hr = CarbonI.read_atmos_profile_MERRA2(CarbonI.default_merra_file, lat, lon, 7);
     sce = Scenario(lat=lat, lon=lon, sza=sza, profile_hr=profile_hr, wind_speed=wind_speed, surface_albedo=tropical_forest_albedo)
     return sce

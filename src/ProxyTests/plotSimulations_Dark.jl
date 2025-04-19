@@ -1,6 +1,6 @@
 using CairoMakie
 using JLD2, Statistics, vSmartMOM, InstrumentOperator, CarbonI 
-using ImageFiltering, Interpolations, Statistics, CUDA, Plots, Distributions
+using ImageFiltering, Interpolations, Statistics, CUDA, Distributions
 
 # Define some colors and themes
 set_theme!(CairoMakie.theme_black())

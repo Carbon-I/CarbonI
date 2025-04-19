@@ -7,7 +7,7 @@ radiative_transfer:
     - (1e7/2391):0.01:(1e7/2029)
   # Bidirectional Reflectance Distribution Function (BRDF) per band
   surface: 
-    - LambertianSurfaceScalar(0.05)
+    - LambertianSurfaceSpline(LinearInterpolation(1.0:2.0,1.0:2.0),1.0:2.0)
   # Quadrature-scheme for stream calculations
   quadrature_type:    GaussQuadHemisphere()
   # Polarization type (Stokes_I, Stokes_IQ, Stokes_IQU, Stokes_IQUV)

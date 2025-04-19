@@ -49,7 +49,7 @@ xticks_labels = ["0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7"]
 
 # Apply custom tick labels
 ax1.xticks = (xticks_values, xticks_labels)
-#axislegend(ax1, position=:rb)
+axislegend(ax1, position=:rb)
 CairoMakie.ylims!(ax1, -4.8, 4.8)
 
 ax2 = Axis(f[1,2], xlabel=L"\text{Albedo}", title=L"\text{Scattering induced retrieval bias in proxy ratio}", xminorgridvisible = true, xminorticks = IntervalsBetween(5))
@@ -61,7 +61,7 @@ lines!(ax2, albedos[ind_highAOD], (-1 .+ ch4_mw2_[ind_highAOD]./n2o_mw2_[ind_hig
 #lines!(ax1, albedos[ind_highAOD], (-1 .+ ch4_mw2_[ind_highAOD])*100, label=L"\text{XCH_4; AOD = 0.165}", color=CS[3], linewidth=2, linestyle=:dash)
 CairoMakie.xlims!(ax2, 0.04, 0.7)
 ax2.xticks = (xticks_values, xticks_labels)
-#axislegend(ax2, position=:rt)
+axislegend(ax2, position=:rt)
 #CairoMakie.ylims!(ax2, -0.5, 0.5)
 
 ax3 = Axis(f[2,1],xlabel=L"\text{AOD}",ylabel=L"\text{Retrieval Bias (%)}",  xminorgridvisible = true, xminorticks = IntervalsBetween(5))
@@ -73,7 +73,7 @@ lines!(ax3, aods[ind_highAlb], (-1 .+ n2o_mw2_[ind_highAlb])*100, label=L"\text{
 lines!(ax3, aods[ind_highAlb], (-1 .+ ch4_mw2_[ind_highAlb])*100 .+ 0.25, label=L"\text{\Omega_{CH_4} Albedo = 0.25}", color=CarbonI_colors[10], linewidth=lw, linestyle=:dash)
 CairoMakie.xlims!(ax3, 0.01, 0.3)
 CairoMakie.ylims!(ax3, -4.8, 4.8)
-#axislegend(ax3, position=:lb)
+axislegend(ax3, position=:lb)
 #CairoMakie.ylims!(ax3, -4.8, 4.8)
 
 ax4 = Axis(f[2,2], xlabel=L"\text{AOD}", xminorgridvisible = true, xminorticks = IntervalsBetween(5))
@@ -86,13 +86,14 @@ lines!(ax4, aods[ind_highAlb], (-1 .+ ch4_mw2_[ind_highAlb]./n2o_mw2_[ind_highAl
 CairoMakie.xlims!(ax4, 0.01, 0.3)
 CairoMakie.ylims!(ax4, -0.25, 0.25)
 CairoMakie.ylims!(ax2, -0.25, 0.25)
-#axislegend(ax4, position=:lt)
+axislegend(ax4, position=:lt)
 #CairoMakie.ylims!(ax4, -0.5, 0.5)
 
 
 f
 save("plots/ProxyRT_errorsCI_3.pdf", f)
 save("plots/final/SectionD-D12-ProxyRT_errorsCI_3.eps", f)
+save("plots/final/SectionD-D12-ProxyRT_errorsCI_3.png", f)
 
 
 

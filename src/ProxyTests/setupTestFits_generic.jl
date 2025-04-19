@@ -145,8 +145,14 @@ function createBayesianConstraints(gas_array, gasProfiles, n_poly,profile, p_str
         Sa[(i-1)*n_layers+1:i*n_layers,(i-1)*n_layers+1:i*n_layers] .= CarbonI.createPriorCovarianceMatrix(errorVectors[i], correlationMatrices[i]);
     end
     # Put in arbitrarily high numbers for the polynomial term, so these won't be constrained at all:
+    counter = 1
     for i=length(gas_array)*n_layers+1:n_state
-        Sa[i,i] = 1e5;
+        if counter < 3
+            Sa[i,i] = 1^2;
+        else
+            Sa[i,i] = 0.001^2;
+        end
+        counter += 1
     end
     #Sa[n_layers*length(gas_array)+1:n_state,n_layers*length(gas_array)+1:n_state] .= 1e5;
 
@@ -202,7 +208,7 @@ function define_inverse_model(F, xa, Sa, Se, n, max_iter,iP ) where {FT}
     function invert(y::AbstractArray{FT2}) where{FT2}
         # Start at prior (just adjust for first polynomial term)
         x_all[:,1] = xa
-        x_all[iP,1] = maximum(iP)
+        x_all[iP,1] = maximum(y)
         # Start iterations:
         for i=1:max_iter
             ForwardDiff.jacobian!(result, F, x_all[:,i]);
@@ -220,84 +226,3 @@ function define_inverse_model(F, xa, Sa, Se, n, max_iter,iP ) where {FT}
     return invert
 end
 
-#=
-# Load spectra:
-@load "simulated_rads_all.jld2" R_conv_carbonI_dict
-sorted_keys = sort(collect(keys(R_conv_carbonI_dict)));
-#println(keys(R_conv_carbonI_dict));
-
-n_poly = 4
-a = createFitParams(indLR, setupFile, n_layers, gas_array)
-xa, Sa, h_column = createBayesianConstraints(gas_array, a.gasProfiles,n_poly, a.profile, 150.0, 800.0, cls, rel_errors, pbl_error)
-ff = define_forward_model(a)
-errors = 1e10*ones(length(indLR));
-errors .= 0.00002
-Se = Diagonal(errors.^2);
-#Sa[15,15] = 100^2
-iP = length(xa)-n_poly+1
-ii = define_inverse_model(ff,xa,Sa,Se,length(indLR),4,iP);
-
-# # co2_error = []
-# # for i=1:100
-# #     @show i
-# #     y = ff(x) + randn(length(indLR))*0.0015;
-# #     x, yy, S = ii(y);
-# #     append!(co2_error, h_column["co2"]' * x̂)
-# # end
-
-# # # Ratio of the error to the true value
-# # t_co2 = (h_column["co2"]' * x) / (h_column["co2"]' * xa)
-# # t_n2o = (h_column["n2o"]' * x) / (h_column["n2o"]' * xa)
-# # @show (h_column["co2"]' * x) / (h_column["co2"]' * xa)
-# # @show (h_column["n2o"]' * x) / (h_column["n2o"]' * xa)
-# # @show (h_column["h2o"]' * x) / (h_column["h2o"]' * xa)
-# # @show (h_column["ch4"]' * x) / (h_column["ch4"]' * xa)
-
-co2_error = []
-ch4_error = []
-n2o_error = []
-h2o_error = []
-albs2 = []
-for key in sorted_keys
-#for i=2620:2632
-    if key[1] == 20.0
-    #global A
-    #key = sorted_keys[i]
-    @show key
-    y = R_conv_carbonI_dict[key][indLR];
-    x, yy, S, A, K = ii(y);
-    t_co2 = (h_column["co2"]' * x) / (h_column["co2"]' * xa)
-    t_n2o = (h_column["n2o"]' * x) / (h_column["n2o"]' * xa)
-    t_ch4 =(h_column["ch4"]' * x) / (h_column["ch4"]' * xa)
-    t_h2o =(h_column["h2o"]' * x) / (h_column["h2o"]' * xa)
-    #@show (h_column["n2o"]' * x) / (h_column["n2o"]' * xa)
-    #@show t_ch4/t_n2o
-    @show t_ch4, t_n2o, t_co2, t_h2o
-    #@show t_co2/t_n2o
-    append!(ch4_error, t_ch4)
-    append!(co2_error, t_co2)
-    append!(n2o_error, t_n2o)
-    append!(h2o_error, t_h2o)
-    append!(albs2, key[4])
-    end
-end
-aods = [a[3] for a in sorted_keys];
-szas = [a[1] for a in sorted_keys];
-indi = findall(x->x==20.0,szas)
-
-
-function getColumnKernel(A, h_column, name)
-    cAK = (h_column[name]'*A)[1,:]./h_column[name]
-    ind = findall(x->x!=0,h_column[name]) 
-    return cAK[ind]
-end
-
-Plots.plot(getColumnKernel(A, h_column, "co2"), a.profile.p*-1, label="CO2")
-Plots.plot!(getColumnKernel(A, h_column, "n2o"), a.profile.p*-1, label="N2O")
-Plots.plot!(getColumnKernel(A, h_column, "ch4"), a.profile.p*-1, label="CH4")
-
-@save "mwCO2_fits_generic_10.jld2" n2o_error ch4_error co2_error h2o_error albs2 aods szas
-#Plots.plot!(getColumnKernel(A, h_column, "h2o"), a.profile.p*-1, label="H2O")
-
-
-=#
