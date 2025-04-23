@@ -1,6 +1,6 @@
 using JLD2, Statistics, vSmartMOM, InstrumentOperator, CarbonI, ImageFiltering, Interpolations, Statistics, CUDA, Distributions
-using DelimitedFiles, Plots
-device!(1)
+using Plots
+#device!(1)
 Δwl = 0.005
 wl = 2035:Δwl:2385
 
@@ -12,13 +12,15 @@ include("./src/Plots/CI_colors.jl")
 cM, wl_ci = CarbonI.create_carbonI_conv_matrix_cbe(wl)
 
 
-R_conv_carbonI_dict = Dict{Tuple{Float64, Float64,Float64}, Vector{Float64}}()
+
 
 parameters = parameters_from_yaml("/home/cfranken/code/gitHub/CarbonI/src/yaml/carbon-i-splineAlbedo.yaml")
 
-aods = [0.01, 0.02,0.03, 0.04, 0.05, 0.075, 0.1, 0.125,  0.15, 0.175, 0.2]
+R_conv_carbonI_dict = Dict{Tuple{Float64, Float64,Float64}, Vector{Float64}}()
+aods = [0.002, 0.01, 0.02,0.03, 0.04, 0.05, 0.075, 0.1, 0.125,  0.15, 0.175, 0.2]
+aods = [0.002,  0.05,   0.15]
 #aods = [0.075]
-alb_scalings = [1.0, 0.8, 0.6, 0.4, 0.2]
+alb_scalings = 0.05:0.15:0.45
 #alb_scaling = [1.0]
 flipSigns = [1.0]
 #flipSigns = [1.0,   -1.0]
@@ -32,15 +34,6 @@ parameters.scattering_params.rt_aerosols[1].profile = Normal(p_aero, 50.0)
 model = model_from_parameters(parameters);
 aod_profile_normalized = model.τ_aer[1][1,:] / sum(model.τ_aer[1][1,:])
 # End of Basic setup ########################
-
-soil = readdlm("data/soil.aridisol.camborthid.none.all.89p1772.jhu.becknic.spectrum.txt", skipstart=1751)
-wo = findall(2.45 .> soil[:,1].> 1.9)
-soil = soil[wo,:]
-
-gridi = 1980:20:2400
-spl = CubicSplineInterpolation(gridi, scenario.surface_albedo(gridi))
-soil_spline = LinearInterpolation(1000*reverse(soil[:,1]), reverse(soil[:,2]))
-soil_smooth = CubicSplineInterpolation(gridi, soil_spline(gridi))
 
 # Define runs:
 n_iter   = 1
@@ -61,9 +54,11 @@ for (iAOD,aod) in enumerate(aods)
             @show aod, alb_scaling, flipSign
             model.τ_aer[1][1,:] = aod * aod_profile_normalized
             
-            
-            grid = 1980:20:2400
-            spl = CubicSplineInterpolation(grid, soil_smooth(grid)*alb_scaling/100)
+            #model.τ_rayl[1] .=1e-30;
+            center_fit = mean(wl_ci[indLR2])
+            p =  Polynomials.fit(wl_ci[indLR2].-center_fit, scenario.surface_albedo(wl_ci[indLR2]),2)
+            gridi = 1980:30:2400
+            spl = CubicSplineInterpolation(gridi, ones(length(gridi))*alb_scaling)
             #p[1] = p[1] * flipSign
             #p[2] = p[2] * flipSign
             #grid = 2000:20:2400
@@ -83,13 +78,13 @@ for (iAOD,aod) in enumerate(aods)
     end
 end
 
-@save "simulated_rads_VariableAlbedoSoil.jld2" R_conv_carbonI_dict 
+@save "simulated_rads_VariableAlbedoBaseline.jld2" R_conv_carbonI_dict 
 
 # x, yy, S, A, K = ii_mw1(R_conv_carbonI[indLR1]);
 # Loop over AODs and albedo scalings:
-#@load "simulated_rads_VariableAlbedoSoil.jld2" R_conv_carbonI_dict
+#  @load "simulated_rads_VariableAlbedoTropics.jld2" R_conv_carbonI_dict
 for (iAOD,aod) in enumerate(aods)
-    for (iAlb,alb_scaling) in enumerate(reverse(alb_scalings))
+    for (iAlb,alb_scaling) in enumerate(alb_scalings)
         for (iSign, flipSign) in enumerate(flipSigns[1])
             key = (aod, alb_scaling, flipSign)
             y1 = R_conv_carbonI_dict[key][indLR1];
@@ -110,7 +105,7 @@ for (iAOD,aod) in enumerate(aods)
             R_h2o_2 = (x2' * h_column2["h2o"])./(xa2' * h_column2["h2o"])
             R_h2o_3 = (x3' * h_column3["h2o"])./(xa3' * h_column3["h2o"])
             R_h2o_4 = (x4' * h_column4["h2o"])./(xa4' * h_column4["h2o"])
-            @show key, R_ch4./R_n2o, R_ch4, R_ch4_3
+            @show key, R_ch4./R_n2o
             ratios_ch4[iAOD,iAlb,iSign,1]   = R_ch4
             ratios_ch4_3[iAOD,iAlb,iSign,1] = R_ch4_3
             ratios_n2o[iAOD,iAlb,iSign,1]   = R_n2o
@@ -123,8 +118,7 @@ for (iAOD,aod) in enumerate(aods)
     end
 end
 
-key = (0.1, 1.0, 1.0)
-
+key = (0.1, 0.5, 1.0)
 y1 = R_conv_carbonI_dict[key][indLR1];
 y2 = R_conv_carbonI_dict[key][indLR2];
 y3 = R_conv_carbonI_dict[key][indLR3];
@@ -137,13 +131,10 @@ x4, yy4, S4, A4, K4 = ii_mw4(y4);
 
 
 function plotFits()
-    f = Figure(resolution=(700,500), title="Spectral Fits", fontsize=16)
+    f = Figure(resolution=(700,500), title="Spectral Fits", fontsize=15)
 
     # Primary axis (left Y)
-    ax1 = Axis(f[1, 1]; xlabel="Wavelength (μm)", ylabel="Reflected radiance", title="Noise free retrieval performance", yminorgridvisible=true)
-
-
-    
+    ax1 = Axis(f[1, 1]; xlabel="Wavelength (μm)", ylabel="Reflected radiance",title="Noise free retrieval performance", yminorgridvisible=true)
 
     # plot on ax1
     lines!(ax1,wl_ci,R_conv_carbonI_dict[key],label = "Simulated Spectrum",color = :black,linewidth = 2,)
@@ -157,32 +148,32 @@ function plotFits()
     lines!(ax1,wl_ci[indLR2],10*(y2 .- yy2),color = CarbonI_colors[7],linewidth = 2,)
     lines!(ax1,wl_ci[indLR3],10*(y3 .- yy3),color = CarbonI_colors[10],linewidth = 2,)
     lines!(ax1,wl_ci[indLR4],10*(y4 .- yy4),color = CarbonI_colors[11],linewidth = 2,)
-    text!(ax1, "Residuals 10x(measured - fitted)", position = (2200, 0.03), color = :black)
+    text!(ax1, "Residuals 10x(measured - fitted)", position = (2200, 0.003), color = :black)
     # separate legends so they don’t overlap
     axislegend(ax1, position = :lb, orientation = :horizontal)
     
     CairoMakie.xlims!(ax1, 2030, 2380)
-    CairoMakie.ylims!(ax1, -0.1, 0.6)
+    CairoMakie.ylims!(ax1, -0.02, 0.6)
     
    # xlims!(ax2, 2000, 2400)
     return f
 end
 
 f = plotFits()
-save("plots/ProxyPaper/SpectralFitsSoil.pdf", f)
+save("plots/ProxyPaper/SpectralFitsBaseline.pdf", f)
 
 function plotResults()
     f = Figure(resolution=(800,550), title="Fit Results", fontsize=17)
-    ranger = (0.98,1.05)
+    ranger = (0.95,1.02)
     # Primary axis (left Y)
     ax1 = Axis(f[1, 1]; xlabel="AOD", ylabel="Reflectance at 2.1µm", yminorgridvisible=true, title="Ω(CH₄)", xticks=0:0.1:0.2)
     ax2 = Axis(f[1, 2]; xlabel="AOD",  yminorgridvisible=true, title="Ω(N₂O)", xticks=0:0.1:0.2)
     ax3 = Axis(f[1, 4]; xlabel="AOD",  yminorgridvisible=true, title="Ω(CH₄)/Ω(N₂O)", xticks=0:0.1:0.2)
     hideydecorations!(ax2, grid=false)
     hideydecorations!(ax3, grid=false)
-    ch4 = CairoMakie.heatmap!(ax1,aods,  reverse(alb_scalings)*0.45,ratios_ch4[:,:,1,1], colormap = :viridis, colorbar = false, colorrange=ranger)
-    n2o = CairoMakie.heatmap!(ax2,aods,  reverse(alb_scalings)*0.45,ratios_n2o[:,:,1,1], colormap = :viridis, colorbar = false, colorrange=ranger)
-    proxyRatio = CairoMakie.heatmap!(ax3,aods,  reverse(alb_scalings)*0.45,ratios_ch4[:,:,1,1]./ratios_n2o[:,:,1,1], colormap = :viridis, colorbar = false)
+    ch4 = CairoMakie.heatmap!(ax1,aods,  alb_scalings,ratios_ch4[:,:,1,1], colormap = :viridis, colorbar = false, colorrange=ranger)
+    n2o = CairoMakie.heatmap!(ax2,aods, alb_scalings,ratios_n2o[:,:,1,1], colormap = :viridis, colorbar = false, colorrange=ranger)
+    proxyRatio = CairoMakie.heatmap!(ax3,aods,  alb_scalings,ratios_ch4[:,:,1,1]./ratios_n2o[:,:,1,1], colormap = :viridis, colorbar = false)
     Colorbar(f[1, 3], ch4)
     Colorbar(f[1, 5], proxyRatio)
     ax4 = Axis(f[2, 1:2]; xlabel="Ω(CH₄, MW3)/Ω(CH₄ MW4)", ylabel="Ω(CH₄, MW3)/Ω(N₂O MW3)", yminorgridvisible=true)
@@ -193,4 +184,4 @@ function plotResults()
 end
 plotResults()
 f = plotResults()
-save("plots/ProxyPaper/ProxySoilAlbedo2D.pdf", f)
+save("plots/ProxyPaper/ProxyBaseline2D.pdf", f)

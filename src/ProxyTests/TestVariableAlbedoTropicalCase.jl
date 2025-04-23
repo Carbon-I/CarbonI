@@ -97,13 +97,14 @@ for (iAOD,aod) in enumerate(aods)
             #y_ = R_conv_carbonI[indLR2]
             R_ch4 = (x2' * h_column2["ch4"])./(xa2' * h_column2["ch4"])
             R_ch4_3 = (x3' * h_column3["ch4"])./(xa3' * h_column3["ch4"])
+            R_ch4_4 = (x4' * h_column4["ch4"])./(xa4' * h_column4["ch4"])
             R_n2o = (x2' * h_column2["n2o"])./(xa2' * h_column2["n2o"])
             R_n2o_1 = (x1' * h_column1["n2o"])./(xa1' * h_column1["n2o"])
             R_h2o_1 = (x1' * h_column1["h2o"])./(xa1' * h_column1["h2o"])
             R_h2o_2 = (x2' * h_column2["h2o"])./(xa2' * h_column2["h2o"])
             R_h2o_3 = (x3' * h_column3["h2o"])./(xa3' * h_column3["h2o"])
             R_h2o_4 = (x4' * h_column4["h2o"])./(xa4' * h_column4["h2o"])
-            @show key, R_ch4./R_n2o
+            @show key, R_ch4./R_n2o, R_ch4_4 , R_ch4_3, R_ch4
             ratios_ch4[iAOD,iAlb,iSign,1]   = R_ch4
             ratios_ch4_3[iAOD,iAlb,iSign,1] = R_ch4_3
             ratios_n2o[iAOD,iAlb,iSign,1]   = R_n2o
@@ -129,10 +130,10 @@ x4, yy4, S4, A4, K4 = ii_mw4(y4);
 
 
 function plotFits()
-    f = Figure(resolution=(700,500), title="Spectral Fits", fontsize=12)
+    f = Figure(resolution=(700,500), title="Spectral Fits", fontsize=15)
 
     # Primary axis (left Y)
-    ax1 = Axis(f[1, 1]; xlabel="Wavelength (μm)", ylabel="Reflected radiance", yminorgridvisible=true)
+    ax1 = Axis(f[1, 1]; xlabel="Wavelength (μm)", ylabel="Reflected radiance",title="Noise free retrieval performance", yminorgridvisible=true)
 
 
     
@@ -140,20 +141,21 @@ function plotFits()
     # plot on ax1
     lines!(ax1,wl_ci,R_conv_carbonI_dict[key],label = "Simulated Spectrum",color = :black,linewidth = 2,)
     lines!(ax1,wl_ci[indLR1],yy1,label = "Fit MW1",color = CarbonI_colors[1],linewidth = 2,)
-    lines!(ax1,wl_ci[indLR2],yy2,label = "Fit MW2",color = CarbonI_colors[7],linewidth = 2,)
-    lines!(ax1,wl_ci[indLR3],yy3,label = "Fit MW3",color = CarbonI_colors[10],linewidth = 2,)
-    lines!(ax1,wl_ci[indLR4],yy4,label = "Fit MW4",color = CarbonI_colors[11],linewidth = 2,)
+    lines!(ax1,wl_ci[indLR4],yy4,label = "Fit MW2",color = CarbonI_colors[11],linewidth = 2,)
+    lines!(ax1,wl_ci[indLR2],yy2,label = "Fit MW3",color = CarbonI_colors[7],linewidth = 2,)
+    lines!(ax1,wl_ci[indLR3],yy3,label = "Fit MW4",color = CarbonI_colors[10],linewidth = 2,)
+    
 
     lines!(ax1,wl_ci[indLR1],10*(y1 .- yy1),color = CarbonI_colors[1],linewidth = 2,)
     lines!(ax1,wl_ci[indLR2],10*(y2 .- yy2),color = CarbonI_colors[7],linewidth = 2,)
     lines!(ax1,wl_ci[indLR3],10*(y3 .- yy3),color = CarbonI_colors[10],linewidth = 2,)
     lines!(ax1,wl_ci[indLR4],10*(y4 .- yy4),color = CarbonI_colors[11],linewidth = 2,)
-
+    text!(ax1, "Residuals 10x(measured - fitted)", position = (2200, 0.003), color = :black)
     # separate legends so they don’t overlap
     axislegend(ax1, position = :lb, orientation = :horizontal)
     
     CairoMakie.xlims!(ax1, 2030, 2380)
-    CairoMakie.ylims!(ax1, -0.015, 0.07)
+    CairoMakie.ylims!(ax1, -0.02, 0.07)
     
    # xlims!(ax2, 2000, 2400)
     return f
@@ -163,12 +165,12 @@ f = plotFits()
 save("plots/ProxyPaper/SpectralFitsTropicalForest.pdf", f)
 
 function plotResults()
-    f = Figure(resolution=(800,550), title="Fit Results", fontsize=12)
+    f = Figure(resolution=(800,550), title="Fit Results", fontsize=17)
     ranger = (0.95,1.02)
     # Primary axis (left Y)
-    ax1 = Axis(f[1, 1]; xlabel="AOD", ylabel="Reflectance at 2.1µm", yminorgridvisible=true, title="Ω(CH₄)")
-    ax2 = Axis(f[1, 2]; xlabel="AOD",  yminorgridvisible=true, title="Ω(N₂O)")
-    ax3 = Axis(f[1, 4]; xlabel="AOD",  yminorgridvisible=true, title="Ω(CH₄)/Ω(N₂O)")
+    ax1 = Axis(f[1, 1]; xlabel="AOD", ylabel="Reflectance at 2.1µm", yminorgridvisible=true, title="Ω(CH₄)", xticks=0:0.1:0.2)
+    ax2 = Axis(f[1, 2]; xlabel="AOD",  yminorgridvisible=true, title="Ω(N₂O)", xticks=0:0.1:0.2)
+    ax3 = Axis(f[1, 4]; xlabel="AOD",  yminorgridvisible=true, title="Ω(CH₄)/Ω(N₂O)", xticks=0:0.1:0.2)
     hideydecorations!(ax2, grid=false)
     hideydecorations!(ax3, grid=false)
     ch4 = CairoMakie.heatmap!(ax1,aods,  alb_scalings*0.0425,ratios_ch4[:,:,1,1], colormap = :viridis, colorbar = false, colorrange=ranger)
@@ -176,9 +178,9 @@ function plotResults()
     proxyRatio = CairoMakie.heatmap!(ax3,aods,  alb_scalings*0.0425,ratios_ch4[:,:,1,1]./ratios_n2o[:,:,1,1], colormap = :viridis, colorbar = false)
     Colorbar(f[1, 3], ch4)
     Colorbar(f[1, 5], proxyRatio)
-    ax4 = Axis(f[2, 1:2]; xlabel="Ω(CH₄, MW3)/Ω(CH₄ MW4)", ylabel="RΩ(CH₄, MW3)/Ω(N₂O MW3)", yminorgridvisible=true)
+    ax4 = Axis(f[2, 1:2]; xlabel="Ω(CH₄, MW3)/Ω(CH₄ MW4)", ylabel="Ω(CH₄, MW3)/Ω(N₂O MW3)", yminorgridvisible=true)
     CairoMakie.scatter!(ax4, (ratios_ch4[:,:,1,1]'./ratios_ch4_3[:,:,1,1]')[:], (ratios_ch4[:,:,1,1]'./ratios_n2o[:,:,1,1]')[:], color = :black)
-    ax5 = Axis(f[2, 3:5]; xlabel="Ω(CH₄, MW3)/Ω(CH₄ MW4)", ylabel="RΩ(H₂O, MW3)/Ω(H₂O MW4)", yminorgridvisible=true)
+    ax5 = Axis(f[2, 3:5]; xlabel="Ω(CH₄, MW3)/Ω(CH₄ MW4)", ylabel="Ω(H₂O, MW3)/Ω(H₂O MW4)", yminorgridvisible=true)
     CairoMakie.scatter!(ax5, (ratios_ch4[:,:,1,1]'./ratios_ch4_3[:,:,1,1]')[:], (mw2_h2o[:,:,1,1]'./mw3_h2o[:,:,1,1]')[:], color = :black)
     return f
 end
