@@ -1,13 +1,13 @@
 
 # Generic settings:
-n_poly_2 = 8
-n_poly_1 = 8
+n_poly_2 = 5
+n_poly_1 = 5
 n_poly_3 = 8
 n_poly_4 = 8
 
-pbl_error = 1000000.0
+pbl_error = 10000.0
 n_layers = 3
-rel_errors_gases = 0.001
+rel_errors_gases = 0.002
 rel_n2o = 0.000001
 n_iter = 5
 # Something low here to account for our no noise scenario
@@ -25,7 +25,7 @@ indLR1 = 8:150
 #indLR = 287:410
 #indLR = 7:410
 # CLS = correlation length scale
-cls        = Dict(gas => 1550.0 for gas in gas_array1)
+cls        = Dict(gas => 550.0 for gas in gas_array1)
 cls["h2o"] = 150.0
 #cls["co2"] = 150.0
 cls["hdo"] = 150.0

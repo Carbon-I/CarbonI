@@ -18,9 +18,9 @@ parameters = parameters_from_yaml("/home/cfranken/code/gitHub/CarbonI/src/yaml/c
 
 R_conv_carbonI_dict = Dict{Tuple{Float64, Float64,Float64}, Vector{Float64}}()
 aods = [0.002, 0.01, 0.02,0.03, 0.04, 0.05, 0.075, 0.1, 0.125,  0.15, 0.175, 0.2]
-aods = [0.002,  0.05,   0.15]
+#aods = [0.002,  0.05,   0.15]
 #aods = [0.075]
-alb_scalings = 0.05:0.15:0.45
+alb_scalings = 0.05:0.05:0.45
 #alb_scaling = [1.0]
 flipSigns = [1.0]
 #flipSigns = [1.0,   -1.0]
@@ -38,6 +38,7 @@ aod_profile_normalized = model.τ_aer[1][1,:] / sum(model.τ_aer[1][1,:])
 # Define runs:
 n_iter   = 1
 ratios_ch4   = Array{Float64}(undef, (length(aods),length(alb_scalings), length(flipSigns), n_iter ));
+ratios_ch4_2   = Array{Float64}(undef, (length(aods),length(alb_scalings), length(flipSigns), n_iter ));
 ratios_ch4_3 = Array{Float64}(undef, (length(aods),length(alb_scalings), length(flipSigns), n_iter ));
 ratios_n2o   = Array{Float64}(undef, (length(aods),length(alb_scalings), length(flipSigns), n_iter ));
 ratios_n2o_w1   = Array{Float64}(undef, (length(aods),length(alb_scalings), length(flipSigns), n_iter ));
@@ -99,6 +100,7 @@ for (iAOD,aod) in enumerate(aods)
             #y_ = R_conv_carbonI[indLR2]
             R_ch4 = (x2' * h_column2["ch4"])./(xa2' * h_column2["ch4"])
             R_ch4_3 = (x3' * h_column3["ch4"])./(xa3' * h_column3["ch4"])
+            R_ch4_2 = (x4' * h_column4["ch4"])./(xa4' * h_column4["ch4"])
             R_n2o = (x2' * h_column2["n2o"])./(xa2' * h_column2["n2o"])
             R_n2o_1 = (x1' * h_column1["n2o"])./(xa1' * h_column1["n2o"])
             R_h2o_1 = (x1' * h_column1["h2o"])./(xa1' * h_column1["h2o"])
@@ -108,6 +110,7 @@ for (iAOD,aod) in enumerate(aods)
             @show key, R_ch4./R_n2o
             ratios_ch4[iAOD,iAlb,iSign,1]   = R_ch4
             ratios_ch4_3[iAOD,iAlb,iSign,1] = R_ch4_3
+            ratios_ch4_2[iAOD,iAlb,iSign,1] = R_ch4_2
             ratios_n2o[iAOD,iAlb,iSign,1]   = R_n2o
             mw1_h2o[iAOD,iAlb,iSign,1]   = R_h2o_1
             mw2_h2o[iAOD,iAlb,iSign,1]   = R_h2o_2
@@ -118,7 +121,7 @@ for (iAOD,aod) in enumerate(aods)
     end
 end
 
-key = (0.1, 0.5, 1.0)
+key = (0.15, 0.35, 1.0)
 y1 = R_conv_carbonI_dict[key][indLR1];
 y2 = R_conv_carbonI_dict[key][indLR2];
 y3 = R_conv_carbonI_dict[key][indLR3];
