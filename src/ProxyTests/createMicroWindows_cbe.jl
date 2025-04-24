@@ -1,13 +1,13 @@
 
 # Generic settings:
-n_poly_2 = 5
-n_poly_1 = 5
+n_poly_2 = 8
+n_poly_1 = 4
 n_poly_3 = 8
 n_poly_4 = 8
 
 pbl_error = 10000.0
-n_layers = 3
-rel_errors_gases = 0.002
+n_layers = 5
+rel_errors_gases = 0.01
 rel_n2o = 0.000001
 n_iter = 5
 # Something low here to account for our no noise scenario
@@ -20,7 +20,7 @@ gas_array1 = ["co2", "ch4", "n2o", "h2o","hdo"];
 #gas_array = ["ch4", "co2", "n2o",  "co",  "c2h6"];
 #gas_array = ["ch4", "n2o", "h2o", "co", "hdo", "c2h6"];
 setupFile = "/home/cfranken/code/gitHub/CarbonI/src/yaml/carbon-i.yaml"
-n_layers = 3
+
 indLR1 = 8:150
 #indLR = 287:410
 #indLR = 7:410
