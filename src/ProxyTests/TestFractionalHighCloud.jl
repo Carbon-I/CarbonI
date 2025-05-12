@@ -132,7 +132,7 @@ function plotCloudFractional()
     axislegend(ax1, position = :lb)
   
     CairoMakie.xlims!(ax1, 0, 100)
-    
+    CairoMakie.ylims!(ax1, 1950, 2070)
    # xlims!(ax2, 2000, 2400)
     return f
 end

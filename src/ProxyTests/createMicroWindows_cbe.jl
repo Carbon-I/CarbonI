@@ -1,13 +1,13 @@
 
 # Generic settings:
 n_poly_2 = 8
-n_poly_1 = 4
+n_poly_1 = 8
 n_poly_3 = 8
 n_poly_4 = 8
 
 pbl_error = 10000.0
-n_layers = 5
-rel_errors_gases = 0.01
+n_layers = 3
+rel_errors_gases = 0.001
 rel_n2o = 0.000001
 n_iter = 5
 # Something low here to account for our no noise scenario
