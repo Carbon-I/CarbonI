@@ -12,8 +12,8 @@ using Statistics
 
 
 scenario = CarbonI.reference_scenario() 
-#specs = CarbonI.build_instrument("CBE")
-specs = CarbonI.build_instrument("Requirement")
+specs = CarbonI.build_instrument("CBE")
+#specs = CarbonI.build_instrument("Requirement")
 
 # Create an instrument with the specs
 ins = InstrumentOperator.createGratingNoiseModel(specs.ET, specs.Pitch, 
@@ -30,12 +30,12 @@ mean_base_albedo = mean(soil(specs.modelling_wl)[(specs.modelling_wl .>= 2105) .
 
 
 # Range of values to sweep
-broadband_albedo = 0.04:0.02:0.8
-sza_range = 5:5:75
+broadband_albedo = 0.03:0.02:0.8
+sza_range = 5:5:80
 
 # Create a NetCDF file to store the results
-#file_path = "errors_as_function_of_albedo_and_sza_cbe.nc"
-file_path = "errors_as_function_of_albedo_and_sza_req.nc"
+file_path = "errors_as_function_of_albedo_and_sza_cbe.nc"
+#file_path = "errors_as_function_of_albedo_and_sza_req.nc"
 ds = Dataset(file_path, "c")
 # add broadband_albedo to file
 dim_albedo = defDim(ds, "albedo", length(broadband_albedo))
@@ -92,3 +92,4 @@ n2o_error[:] = output_error["n2o"]
 co_error[:]  = output_error["co"]
 co213_error[:] = output_error["co213"]
 c2h6_error[:] = output_error["c2h6"]
+close(ds)

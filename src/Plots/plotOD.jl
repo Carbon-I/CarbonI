@@ -9,7 +9,7 @@ end
 vod[vod.<1e-10] .= 1e-10
 
 # Define an instrument:
-FWHM  = 1.7  # 
+FWHM  = 0.6  # 
 SSI  = 0.7
 kern1 = CarbonI.box_kernel(2*SSI, Δwl)
 kern2 = CarbonI.gaussian_kernel(FWHM, Δwl)
