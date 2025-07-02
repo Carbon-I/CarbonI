@@ -167,7 +167,7 @@ for (i,FWHM) in enumerate(FWHMs)
     # Define an instrument:
     #FWHM  = 1.7  #
     # 2.7 times oversampling 
-    SSI  = FWHM/2.3
+    SSI  = FWHM/2.5
 
     #kern1 = CarbonI.box_kernel(2*SSI, Δwl)
     kern2 = CarbonI.gaussian_kernel(FWHM, Δwl)

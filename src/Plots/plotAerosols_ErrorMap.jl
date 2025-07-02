@@ -31,6 +31,7 @@ alb_map = la[200:1200, 1600:-1:600]
 ind = findall(aods .== unique(aods)[index] .&& szas .== 20 .&& paod .== 850)
 
 
+
 inter = LinearInterpolation(alb_grid, n2o_mw2[ind], extrapolation_bc=Interpolations.Flat())
 inter2 = LinearInterpolation(alb_grid, ch4_mw2[ind], extrapolation_bc=Interpolations.Flat())
 # Plot:
