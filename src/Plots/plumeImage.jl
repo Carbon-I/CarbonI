@@ -1,7 +1,7 @@
 using NCDatasets
 using StatsBase
 
-les = Dataset("/net/fluo/data2/groupMembers/siraput/Data_NewSatRetrieval/LES_P_T_W/C_conc_30817.h5")
+les = Dataset("/kiwi-data/Data/groupMembers/siraput/Data_NewSatRetrieval/LES_P_T_W/W_conc_30817.h5")
 
 C3D = les["C"][:];
 C_sum = sum(C3D, dims=1)[1,:,:];

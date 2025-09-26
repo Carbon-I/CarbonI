@@ -26,7 +26,7 @@ pbl_error = 100.0
 ############################################################################
 
 
-
+n_poly = 8
 
 a1 = createFitParams(indLR1, setupFile, n_layers, gas_array1)
 xa1, Sa1, h_column1 = createBayesianConstraints(gas_array1, a1.gasProfiles,n_poly, a1.profile, 150.0, 800.0, cls, rel_errors, pbl_error)

@@ -11,7 +11,7 @@ rel_errors_gases = 0.001
 rel_n2o = 0.000001
 n_iter = 5
 # Something low here to account for our no noise scenario
-Se_error = 0.00002
+Se_error = 0.0001
 
 
 # Example Gas Array (we merge CO2_13 and CO2 now) ########################

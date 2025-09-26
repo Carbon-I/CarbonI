@@ -26,6 +26,27 @@ function create_carbonI_conv_matrix(modelling_wl::StepRangeLen{FT}, instrument_w
     end
 end
 
+function create_gaussian_conv_matrix(modelling_wl::StepRangeLen{FT}, instrument_wl, FWHM) where FT
+    # Define a Fixed instrument:
+    Δwl = modelling_wl.step.hi
+    
+    # LSF (Gaussian)
+    kernf = CarbonI.gaussian_kernel(FWHM, Δwl)
+    
+    #Get the Instrument-specific box
+    lociBox = CarbonI.KernelInstrument(kernf, instrument_wl);
+
+    # Generate final convolution matrix:
+    cM = CarbonI.generate_conv_matrix(lociBox,modelling_wl, Δwl)
+    if verbose_return
+        return cM, lociBox.ν_out, lociBox
+    else
+        return cM, lociBox.ν_out
+    end
+end
+
+
+
 function create_carbonI_conv_matrix_cbe(wl::StepRangeLen{FT}) where FT
     # Define a Fixed instrument:
     FWHM  = 0.6  # 

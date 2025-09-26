@@ -14,11 +14,8 @@ C_sum = C3D*10*c2mol # Use 200kg/hr (ref is about 5g/s
 
 
 global_gsd = 330
-
 target_gsd = 35.
 target_alongTrack = 30.
-sample_along = convert(Int, target_alongTrack/5)
-sample_across = convert(Int, target_gsd/5)
 fwhm_to_sigma = 2.35482004503
 target_arf = 2.2/fwhm_to_sigma
 target_crf = 1.3/fwhm_to_sigma
@@ -40,9 +37,9 @@ noise_global  = 4 * sqrt(10) / 1900 * refColumn
 
 
 f = Figure(resolution=(450,400), title="", fontsize=16,backgroundcolor = :transparent)
-ax1 = Axis(f[1,1],xlabel = "Across-Track meters",ylabel = "Along-Track meters", aspect = DataAspect(),title="Carbon-I Target Mode (200kg/hr)") 
-#sample=convert(Int,35/5)
-hm = CairoMakie.heatmap!(ax1, dim_x[1:sample_across:end],dim_y[1:sample_along:end],  scene_target[1:sample_across:end,1:sample_along:end]./noise_target, colormap=:OrRd_9)
+ax1 = Axis(f[1,1],xlabel = "meters",ylabel = "meters", aspect = DataAspect(),title="Carbon-I Target Mode (200kg/hr)") 
+sample=convert(Int,35/5)
+hm = CairoMakie.heatmap!(ax1, dim_x[1:sample:end],dim_y[1:sample:end],  scene_target[1:sample:end,1:sample:end]./noise_target, colormap=:OrRd_9)
 #hideydecorations!(ax1)
 #hidexdecorations!(ax1)
 #CairoMakie.ylims!(1e-5,1)
@@ -50,81 +47,8 @@ CairoMakie.xlims!(-200,700)
 CairoMakie.ylims!(-200,700)
 cb = Colorbar(f[1,2], hm,  label = L"\text{\Delta \Omega(CH_4)/1\sigma}",  labelpadding = 10, ticklabelpad = 2, width = 10)
 f
-save("plots/PixelEnhancements-Target-Center.pdf",f)
+save("plots/PixelEnhancements30M.pdf",f)
 
-target_gsd = 100.
-target_alongTrack = 30.
-sample_along = convert(Int, target_alongTrack/5)
-sample_across = convert(Int, target_gsd/5)
-fwhm_to_sigma = 2.35482004503
-target_arf = 2.2/fwhm_to_sigma * 2 # From Calculations...
-target_crf = 1.3/fwhm_to_sigma * 2.8
-fac_global  = convert(Int,global_gsd/5)+1
-kernel_global = Kernel.box((fac_global,fac_global))
-kernel_target = Kernel.gaussian(((target_gsd/5)*target_crf,target_alongTrack/5*target_arf))
-
-dim_x = (1:size(C_sum,1))*5 .-750
-dim_y = (1:size(C_sum,1))*5 .-750
-
-scene_global = imfilter(C_sum,kernel_global);
-scene_target = imfilter(C_sum,kernel_target);
-
-
-refColumn  = 4e19/6e23*100^2
-# Using 4ppb here as baseline (15% albedo)
-noise_target  = 4 * sqrt(10) / 1900 * refColumn
-noise_global  = 4 * sqrt(10) / 1900 * refColumn
-
-
-f = Figure(resolution=(450,400), title="", fontsize=16,backgroundcolor = :transparent)
-ax1 = Axis(f[1,1],xlabel = "Across-Track meters",ylabel = "Along-Track meters", aspect = DataAspect(),title="Carbon-I Target Mode (200kg/hr)") 
-#sample=convert(Int,35/5)
-hm = CairoMakie.heatmap!(ax1, dim_x[1:sample_across:end],dim_y[1:sample_along:end],  scene_target[1:sample_across:end,1:sample_along:end]./noise_target, colormap=:OrRd_9)
-#hideydecorations!(ax1)
-#hidexdecorations!(ax1)
-#CairoMakie.ylims!(1e-5,1)
-CairoMakie.xlims!(-200,700)
-CairoMakie.ylims!(-200,700)
-cb = Colorbar(f[1,2], hm,  label = L"\text{\Delta \Omega(CH_4)/1\sigma}",  labelpadding = 10, ticklabelpad = 2, width = 10)
-f
-save("plots/PixelEnhancements-Target-Roll40-Edge.pdf",f)
-
-target_gsd = 50.
-target_alongTrack = 30.
-sample_along = convert(Int, target_alongTrack/5)
-sample_across = convert(Int, target_gsd/5)
-fwhm_to_sigma = 2.35482004503
-target_arf = 2.2/fwhm_to_sigma * 1.3 # From Calculations...
-target_crf = 1.3/fwhm_to_sigma * 1.5
-fac_global  = convert(Int,global_gsd/5)+1
-kernel_global = Kernel.box((fac_global,fac_global))
-kernel_target = Kernel.gaussian(((target_gsd/5)*target_crf,target_alongTrack/5*target_arf))
-
-dim_x = (1:size(C_sum,1))*5 .-750
-dim_y = (1:size(C_sum,1))*5 .-750
-
-scene_global = imfilter(C_sum,kernel_global);
-scene_target = imfilter(C_sum,kernel_target);
-
-
-refColumn  = 4e19/6e23*100^2
-# Using 4ppb here as baseline (15% albedo)
-noise_target  = 4 * sqrt(10) / 1900 * refColumn
-noise_global  = 4 * sqrt(10) / 1900 * refColumn
-
-
-f = Figure(resolution=(450,400), title="", fontsize=16,backgroundcolor = :transparent)
-ax1 = Axis(f[1,1],xlabel = "Across-Track meters",ylabel = "Along-Track meters", aspect = DataAspect(),title="Carbon-I Target Mode (200kg/hr)") 
-#sample=convert(Int,35/5)
-hm = CairoMakie.heatmap!(ax1, dim_x[1:sample_across:end],dim_y[1:sample_along:end],  scene_target[1:sample_across:end,1:sample_along:end]./noise_target, colormap=:OrRd_9)
-#hideydecorations!(ax1)
-#hidexdecorations!(ax1)
-#CairoMakie.ylims!(1e-5,1)
-CairoMakie.xlims!(-200,700)
-CairoMakie.ylims!(-200,700)
-cb = Colorbar(f[1,2], hm,  label = L"\text{\Delta \Omega(CH_4)/1\sigma}",  labelpadding = 10, ticklabelpad = 2, width = 10)
-f
-save("plots/PixelEnhancements-Target-Roll25-Pitch15.pdf",f)
 
 f = Figure(resolution=(450,400), title="Vertical Optical Depth of Trace Gases", fontsize=18,backgroundcolor = :transparent,fonts = (; regular = "Helvetica Condensed Light", bold="Helvetica Condensed Bold"))
 ax1 = Axis(f[1,1],aspect = DataAspect(),  title="Carbon-I Global Mode (200kg/hr)",xlabel = "meters",ylabel = "meters") 
